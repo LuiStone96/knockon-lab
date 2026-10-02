@@ -6,9 +6,17 @@ type: software
 authors:
   - given-names: "Luis E."
     family-names: "Piedra Marin"
-    affiliation: "International Iberian Nanotechnology Laboratory (INL), Braga, Portugal"
+    affiliation: "International Iberian Nanotechnology Laboratory (INL), Braga, Portugal; Instituto Superior Técnico, Universidade de Lisboa, Lisboa, Portugal"
     orcid: "https://orcid.org/0000-0001-8598-8529"
 version: "1.0.0"
+doi: "10.5281/zenodo.23105637"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.23105637"
+    description: "Concept DOI (all versions, always resolves to the latest)"
+  - type: doi
+    value: "10.5281/zenodo.23105638"
+    description: "Version 1.0.0"
 date-released: "2026-10-02"
 license: MIT
 url: "https://knockonlab.netlify.app/"
