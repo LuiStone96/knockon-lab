@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Knock-on Lab: knock atoms out of graphene, hBN and MoS₂ with an electron microscope</title>
+<meta name="description" content="Free educational browser game: pick a 2D crystal (graphene, hBN or MoS₂), set up a STEM electron microscope and find out when the beam knocks an atom out. For schools, universities and anyone curious about science. Available in English, Spanish and Portuguese.">
+<meta name="keywords" content="educational game, electron microscopy, STEM, knock-on damage, sputtering, atoms, graphene, hBN, MoS2, 2D materials, physics, science outreach, juego educativo, microscopia eletrónica">
+<meta name="author" content="Luis E. Piedra, INL International Iberian Nanotechnology Laboratory">
+<meta name="theme-color" content="#0d1220">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://knockonlab.netlify.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Knock-on Lab">
+<meta property="og:title" content="Knock-on Lab: knock atoms out of a 2D crystal with an electron beam">
+<meta property="og:description" content="A free science game about how an electron microscope can remove single atoms from graphene, hBN and MoS₂.">
+<meta property="og:url" content="https://knockonlab.netlify.app/">
+<meta property="og:image" content="https://knockonlab.netlify.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Simulated HAADF-STEM image of graphene with an electron beam hitting a carbon vacancy">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="pt_PT">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["VideoGame", "LearningResource"],
+  "name": "Knock-on Lab",
+  "url": "https://knockonlab.netlify.app/",
+  "image": "https://knockonlab.netlify.app/og-image.jpg",
+  "description": "Educational browser game simulating electron-beam knock-on sputtering in scanning transmission electron microscopy (STEM) of graphene, hBN and MoS2.",
+  "genre": ["Educational", "Simulation"],
+  "gamePlatform": "Web browser",
+  "applicationCategory": "Game",
+  "isAccessibleForFree": true,
+  "inLanguage": ["en", "es", "pt"],
+  "educationalLevel": ["Secondary school", "Undergraduate"],
+  "learningResourceType": "Simulation",
+  "about": ["Electron microscopy", "Knock-on damage", "Graphene", "Hexagonal boron nitride", "MoS2"],
+  "author": { "@type": "Person", "name": "Luis E. Piedra", "sameAs": "https://orcid.org/0000-0001-8598-8529", "affiliation": { "@type": "Organization", "name": "International Iberian Nanotechnology Laboratory (INL)" } }
+}
+</script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: instrument console. Field-of-view canvas on the left, beam controls + physics readouts on the right; stacks on phones. Deliberate single dark theme (microscope UI). */
+:root{
+  color-scheme: dark;
+  --bg:#0d1220; --panel:#151c2d; --panel-2:#1b2438; --line:#29344d;
+  --fg:#e3e8f2; --muted:#8d98ad; --beam:#f3a83b; --beam-soft:rgba(243,168,59,.16);
+  --ok:#4cc38a; --bad:#ef6a5b; --warn:#e9c46a;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:0 32px}
+.wrap{max-width:1240px;margin:0 auto}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:18px 14px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.02em;text-transform:uppercase}
+.brand span{color:var(--beam)}
+.sub{color:var(--muted);font-size:14px}
+h2{font-family:var(--f-display);font-weight:600;font-size:22px;letter-spacing:.03em;text-transform:uppercase;margin:0;text-wrap:balance}
+.label{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.chip:focus-visible{outline:2px solid var(--beam);outline-offset:2px}
+
+/* ---- sample selection ---- */
+.intro{max-width:68ch;color:var(--muted);margin:22px 0 18px}
+.intro b{color:var(--fg);font-weight:600}
+.samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.sample{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0;text-align:left;display:flex;flex-direction:column;overflow:hidden;transition:border-color .15s,transform .15s}
+.sample:hover{border-color:var(--beam);transform:translateY(-2px)}
+.sample canvas{width:100%;aspect-ratio:16/10;display:block;background:#000}
+.sample .body{padding:14px 16px 16px;display:grid;gap:6px}
+.sample .name{font-family:var(--f-display);font-size:26px;font-weight:700;letter-spacing:.02em}
+.sample .facts{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.sample p{margin:0;font-size:14px;color:var(--muted)}
+
+/* ---- lab ---- */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;margin-top:18px}
+@media (max-width:920px){.lab{grid-template-columns:minmax(0,1fr)}}
+.viewer{display:grid;gap:10px;min-width:0}
+.viewbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.screen{position:relative;border:1px solid var(--line);border-radius:4px;background:#000;overflow:hidden;max-width:100%}
+.screen canvas{display:block;width:100%;height:auto;aspect-ratio:1/1;cursor:crosshair;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font-family:var(--f-mono);font-size:11px;color:#cfd6e4;text-shadow:0 1px 2px #000;pointer-events:none;line-height:1.5}
+.hud.r{left:auto;right:10px;text-align:right}
+.scalebar{position:absolute;left:12px;bottom:12px;pointer-events:none;font-family:var(--f-mono);font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
+.scalebar i{display:block;width:100%;height:4px;background:#fff;margin-bottom:4px;box-shadow:0 1px 2px #000}
+.toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(13,18,32,.92);border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:13px;white-space:nowrap;pointer-events:none;transition:opacity .3s}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 12px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg)}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.ghost:hover{color:var(--fg);border-color:var(--muted)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-width:0}
+.sect{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:10px}
+.sect:first-child{border-top:0}
+.ctrl{display:grid;gap:6px}
+.ctrl .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .hint{font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel-2);border:1px solid var(--line);border-radius:3px;padding:5px 9px;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip:hover{color:var(--fg)}
+.chip[aria-pressed="true"]{background:var(--beam-soft);border-color:var(--beam);color:var(--beam)}
+
+.target{display:flex;align-items:center;gap:10px;min-height:34px}
+.dot{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:13px;color:#111}
+.target .t{font-size:14px}
+.target .t small{display:block;color:var(--muted);font-size:12px}
+
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.ro{display:grid;gap:1px;min-width:0}
+.ro .v{font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro .k{font-size:11.5px;color:var(--muted)}
+
+.gauge{display:grid;gap:4px}
+.gauge .track{position:relative;height:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:2px}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;background:var(--beam);border-radius:1px;transition:width .25s}
+.gauge .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg)}
+.gauge .cap{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+
+.prob{display:flex;align-items:center;gap:12px}
+.prob .big{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.prob .txt{font-size:12.5px;color:var(--muted)}
+
+.fire{margin:0 16px 16px;background:var(--beam);color:#1a1205;border:0;border-radius:4px;padding:12px;font-family:var(--f-display);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase}
+.fire:hover{filter:brightness(1.08)}
+.fire:disabled{opacity:.45;cursor:not-allowed}
+
+.result{border-left:3px solid var(--line);padding:8px 12px;background:var(--panel-2);border-radius:0 4px 4px 0;font-size:14px}
+.result.ok{border-left-color:var(--ok)} .result.bad{border-left-color:var(--bad)} .result.neutral{border-left-color:var(--warn)}
+.result b{font-weight:600}
+
+.below{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:20px}
+@media (max-width:920px){.below{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.missions{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.missions li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.missions .ck{width:20px;height:20px;border:1.5px solid var(--line);border-radius:3px;display:grid;place-items:center;font-size:13px;color:var(--bg);margin-top:2px}
+.missions li.done .ck{background:var(--ok);border-color:var(--ok)}
+.missions .mt{font-weight:600}
+.missions .md{font-size:13px;color:var(--muted)}
+.log{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+.log table{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.log th,.log td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.log th{position:sticky;top:0;background:var(--panel-2);color:var(--muted);font-weight:500}
+.log .y{color:var(--ok)} .log .n{color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;padding:10px}
+
+details.model{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 16px}
+details.model summary{cursor:pointer;font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:15px}
+details.model .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:12px;font-size:14px}
+details.model p{margin:0 0 8px;max-width:68ch}
+.eq{font-family:var(--f-mono);font-size:12.5px;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:8px 10px;overflow-x:auto;white-space:pre;margin:4px 0 10px}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;font-size:13px;width:100%}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
+.tbl th{color:var(--muted);font-weight:600}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.langsel{display:inline-flex;align-items:center;gap:8px}
+.langsel .seg button{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;padding:5px 10px}
+.brandrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.restart{background:transparent;border:1px solid var(--beam);color:var(--beam);border-radius:4px;padding:5px 12px;font-family:var(--f-display);font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.restart:hover{background:var(--beam-soft)}
+.restart.confirm{background:var(--beam);color:#1a1205}
+.toprow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+
+/* ---- Desktop: fit the whole lab in one screen (no page scroll) ----
+   Sample challenges, log and model notes on the left, screen in the middle, controls on the right; the image is sized
+   from the window height so it never pushes the challenges below the fold. */
+@media (min-width:1200px) and (min-height:600px){
+  .wrap{max-width:1800px}
+  #lab:not([hidden]){display:grid;grid-template-columns:minmax(260px,1fr) auto minmax(400px,440px);
+    grid-template-rows:auto auto 1fr;column-gap:20px;row-gap:16px;margin-top:16px;align-items:start}
+  #lab .lab,#lab .below{display:contents}
+  #lab .viewer{grid-column:2;grid-row:1/4}
+  #lab .panel{grid-column:3;grid-row:1/4}
+  #lab .below>.card:first-child{grid-column:1;grid-row:1}
+  #lab .below>.card:last-child{grid-column:1;grid-row:2}
+  body{padding-block-end:0}
+  #lab:not([hidden]){height:calc(100dvh - 103px);grid-template-rows:auto auto minmax(0,1fr)}
+  #lab details.model{grid-column:1;grid-row:3;margin-top:0;padding:0 14px 12px;min-width:0;min-height:0;align-self:start}
+  #lab details.model[open]{align-self:stretch;overflow:auto;overscroll-behavior:contain}
+  #lab details.model summary{position:sticky;top:0;background:var(--panel);padding:12px 0 8px;z-index:1}
+  #lab details.model .cols{grid-template-columns:minmax(0,1fr);gap:10px;font-size:13px;margin-top:4px}
+  #lab details.model .eq{font-size:11.5px}
+  #lab:has(details.model[open]) .log{max-height:110px;min-height:0}
+  #lab .screen{width:min(calc(100vw - 32px - 40px - 440px - 260px), calc(100dvh - 186px));min-width:420px}
+  #lab .log{max-height:calc(100dvh - 560px);min-height:110px}
+}
+/* Shorter laptop screens: tighten the control panel so FIRE stays visible */
+@media (min-width:1200px) and (max-height:900px){
+  header.top{padding-block:12px 10px}
+  #lab .sect{padding:9px 14px;gap:7px}
+  #lab .ctrl{gap:4px}
+  #lab .chip{padding:3px 8px;font-size:12px}
+  #lab .readouts{gap:4px 12px}
+  #lab .prob .big{font-size:30px}
+  #lab .fire{padding:9px;margin:0 14px 12px;font-size:17px}
+  #lab .result{font-size:13px;padding:6px 10px}
+  #lab .screen{width:min(calc(100vw - 32px - 40px - 440px - 260px), calc(100dvh - 166px))}
+  #lab:not([hidden]){height:calc(100dvh - 93px)}
+}
+@media (min-width:1200px) and (max-height:820px){
+  #lab .chip{padding:3px 6px;font-size:11.5px}
+  #lab .chips{gap:5px}
+  #lab .readouts{grid-template-columns:1fr 1fr 1fr}
+  #lab .ro .v{font-size:13px}
+  #lab .ro .k{font-size:11px;line-height:1.25}
+  #lab .sect{padding:7px 14px;gap:6px}
+  #lab .target{min-height:26px}
+  #lab .prob .big{font-size:26px}
+  #lab .prob .txt{font-size:12px;line-height:1.3}
+  #lab .result{line-height:1.3;font-size:12.5px}
+  #lab .prob .big{white-space:nowrap}
+  #lab .prob{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brandrow"><div class="brand">Knock-on <span>Lab</span></div><button type="button" class="restart" id="restartBtn" data-i="restart"></button></div>
+    <div class="toprow">
+      <div class="sub" data-i="sub"></div>
+      <div class="langsel">
+        <span class="label" data-i="langLabel"></span>
+        <div class="seg" role="group" id="langSeg" aria-label="Language">
+          <button type="button" data-lang="es">ES</button>
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="pt">PT</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SELECTION ============ -->
+  <section id="select">
+    <p class="intro" data-ih="intro"></p>
+    <div class="samples" id="samples"></div>
+  </section>
+
+  <!-- ============ LAB ============ -->
+  <section id="lab" hidden>
+    <div class="lab">
+      <div class="viewer">
+        <div class="viewbar">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="ghost" id="backBtn" data-i="back"></button>
+            <h2 id="sampleTitle"></h2>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="seg" role="group">
+              <button id="modeHaadf" aria-pressed="true">HAADF</button>
+              <button id="modeBall" aria-pressed="false" data-i="model"></button>
+            </div>
+            <button class="ghost" id="resetBtn" data-i="reset"></button>
+          </div>
+        </div>
+        <div class="screen" id="screen">
+          <canvas id="cv" width="720" height="720"></canvas>
+          <div class="hud" id="hudL"></div>
+          <div class="hud r" id="hudR"></div>
+          <div class="scalebar" id="scalebar"><i></i>5 Å</div>
+          <div class="toast" id="toast" style="opacity:0"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <aside class="panel">
+        <div class="sect">
+          <div class="label" data-i="targetLabel"></div>
+          <div class="target" id="targetBox"></div>
+        </div>
+        <div class="sect" id="controls"></div>
+        <div class="sect">
+          <div class="label" data-i="physLabel"></div>
+          <div class="gauge">
+            <div class="cap"><span data-ih="emaxTransf"></span><span id="gaugeTxt"></span></div>
+            <div class="track"><div class="fill" id="gFill"></div><div class="thr" id="gThr"></div></div>
+            <div class="cap"><span>0 eV</span><span id="gMax"></span></div>
+          </div>
+          <div class="readouts" id="readouts"></div>
+          <div class="prob">
+            <div class="big" id="pBig">—</div>
+            <div class="txt" data-i="pTxt"></div>
+          </div>
+        </div>
+        <button class="fire" id="fireBtn" data-i="fire"></button>
+        <div class="sect" style="border-top:0;padding-top:0">
+          <div class="result neutral" id="result"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="below">
+      <div class="card">
+        <div class="label" data-i="missionsLabel"></div>
+        <ul class="missions" id="missions"></ul>
+      </div>
+      <div class="card">
+        <div class="label" data-i="logLabel"></div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <details class="model">
+      <summary data-i="modelSummary"></summary>
+      <div class="cols">
+        <div>
+          <p data-ih="m1"></p>
+          <div class="eq">E_max = 2E(E + 2m₀c²) / (Mc²)</div>
+          <p data-ih="m2"></p>
+          <div class="eq">E_max(v) ≈ E_max + 2·(pc)·(v/c),  pc = √(E(E+2m₀c²))</div>
+          <p data-ih="m3"></p>
+        </div>
+        <div>
+          <p data-ih="m4"></p>
+          <div class="eq">σ = 4πa₀²Z²(E_R/m₀c²)²·(1−β²)/β⁴ ·
+    [ (x−1) − β² ln x + πZαβ(2√x − ln x − 2) ],  x = T_m/E_d</div>
+          <p data-ih="m5"></p>
+          <div class="eq">D(r) = (I·t/e)·(4 ln2 / πw²)·exp(−4 ln2 r²/w²)
+P = 1 − exp(−σ·D)
+P(S₂ → 0) = 1 − e^(−σD)(1 + σD)</div>
+        </div>
+        <div>
+          <div class="tbl"><table>
+            <thead id="elemHead"></thead>
+            <tbody id="elemTable"></tbody>
+          </table></div>
+          <p style="margin-top:10px;color:var(--muted);font-size:13px" data-ih="m6"></p>
+        </div>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+// ======================= I18N =======================
+const STR = {
+es:{
+  restart:"Reiniciar juego", restartConfirm:"¿Seguro? Pulsa otra vez", restarted:"Juego reiniciado.", sub:"Simulador de sputtering por haz en STEM · grafeno · hBN · MoS₂", langLabel:"Idioma",
+  intro:"Elige una muestra 2D. En el microscopio podrás <b>colocar la sonda sobre un átomo</b>, escoger <b>voltaje, corriente, tiempo de exposición y ángulo de convergencia</b> y disparar el haz. La expulsión del átomo se decide con el modelo de desplazamiento por impacto elástico (knock-on) de McKinley–Feshbach, incluyendo las vibraciones de punto cero de la red.",
+  back:"← Cambiar muestra", model:"Modelo", reset:"Restaurar red", canvasAria:"Red atómica. Haz clic para colocar la sonda.",
+  targetLabel:"Objetivo de la sonda", physLabel:"Física del objetivo", emaxTransf:"E<sub>max</sub> transferida", thrTitle:"Umbral de desplazamiento E_d",
+  pTxt:"Probabilidad de expulsar el átomo objetivo en esta exposición", fire:"Exponer haz",
+  resultInit:"Haz clic sobre un átomo para colocar la sonda (modo spot). Luego ajusta los parámetros y expón.", restored:"Red restaurada.",
+  missionsLabel:"Retos de la muestra", logLabel:"Registro de exposiciones", logEmpty:"Aún no hay exposiciones.",
+  logHead:["#","Obj.","kV","pA","t","α","Dosis e⁻/Å²","P","Resultado"], ejectedW:"expulsado", intactW:"intacto",
+  modelSummary:"Modelo físico y supuestos",
+  m1:"<b>Energía máxima transferida</b> a un núcleo en reposo por un electrón de energía E (colisión frontal, relativista):",
+  m2:"Si el átomo vibra con velocidad v a lo largo del haz, la transferencia cambia linealmente (Meyer et al. 2012):",
+  m3:"v sigue una gaussiana con ½M⟨v²⟩ = ½⟨E_fonón⟩, calculada con un modelo de Debye a 300 K (incluye energía de punto cero).",
+  m4:"<b>Sección eficaz</b> de McKinley–Feshbach para T_m &gt; E_d, promediada sobre la distribución de v:",
+  m5:"<b>Sonda</b>: perfil gaussiano con FWHM² = (0.51λ/α)² + d_fuente² + d_Cc², con d_fuente = 0.5 Å y d_Cc = 0.2·C_c·(ΔE/E)·α, C_c = 1.2 mm, ΔE = 0.8 eV (estimación, sin corrector de cromática). En una columna S₂ las dos expulsiones son secuenciales (proceso de Poisson).",
+  m6:"Solo se modela el knock-on. No se incluyen ionización/radiólisis (relevantes en hBN y MoS₂), grabado químico, ni la reducción de E_d en átomos vecinos a una vacancia. En MoS₂ primero sale el S de la cara de salida del haz; mientras está, el S superior es empujado hacia la red. Una vez creada la vacancia inferior, el S superior tiene la columna libre y se trata con el mismo E_d. Los θ_D son valores efectivos aproximados. El perfil gaussiano subestima las colas del disco de Airy.",
+  elemHead:["Átomo","Z","E_d (eV)","θ_D (K)","Fuente E_d"], moRef:"estimación (≫ E_max a 300 kV)",
+  ctrl:{kV:"Voltaje de aceleración",I:"Corriente de sonda",t:"Tiempo de exposición (spot)",alpha:"Semiángulo de convergencia"}, hintKV:"Themis 60–300 kV",
+  hudFov:"FOV", hudProbe:"sonda FWHM",
+  noProbe:"Sin sonda. Haz clic en la imagen.", between:"Entre átomos", betweenSub:"solo dosis de cola sobre vecinos",
+  vacancy:"Vacancia", vacancySub:"La columna ya está vacía", column:n=>`columna ${n}×S`,
+  sExit:"S de la cara de salida", sEntry:"S de entrada (protegido mientras exista el S inferior)", sLast:"S restante: la columna está libre por debajo", inSpot:"átomo en spot",
+  ro:["Electrones totales","Dosis en el objetivo","σ knock-on (300 K)","Umbral (v=0) en kV","Daño colateral esperado","Tasa de dosis"], atoms:"átomos",
+  legendThr:"umbral", legendZ:"Intensidad HAADF ∝ Z^1.7",
+  notOnAtom:"La sonda no estaba sobre un átomo.", onVac:"La sonda está sobre una vacancia: la columna ya está vacía.", tail:n=>`Aun así la cola del haz expulsó ${n} átomo(s).`, nothing:"No se expulsó nada.",
+  sEntryNo:"<b>Sin efecto sobre el S de entrada.</b> Mientras exista el S inferior, el impulso empuja este S hacia la capa de Mo, no fuera del cristal. Expulsa primero el S de salida.",
+  cantEject:"<b>No se puede expulsar.</b>",
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>¡${el} expulsado!</b> E_max = ${Em} eV frente a E_d = ${Ed} eV, σ = ${sig}, dosis ${D} e⁻/Å² → P = ${P}.`,
+  colEmpty2:" <b>Columna S₂ vacía:</b> divacancia de S.", colEmpty:" <b>Columna S₂ vacía:</b> también salió el segundo S.", lastS:" Queda 1 S en la columna: ahora también puede expulsarse.",
+  collat:n=>` <span style="color:var(--bad)">Daño colateral: ${n} átomo(s) vecino(s). Prueba una sonda más fina (α mayor) o menos dosis.</span>`,
+  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E_max = ${Em} eV es muy inferior a E_d = ${Ed} eV; ni las vibraciones de punto cero alcanzan el umbral, así que σ = 0. `,
+  moNever:"El Mo no puede expulsarse con ningún voltaje del Themis.", raiseKV:"Sube el voltaje.",
+  intactLow:(el,sig,D,P)=>`<b>${el} intacto.</b> σ = ${sig} con ${D} e⁻/Å² da solo P = ${P}. Aumenta el voltaje o la dosis (corriente × tiempo).`,
+  survived:(el,P)=>`<b>${el} sobrevivió esta vez.</b> P era ${P}: el sputtering es estocástico. Vuelve a exponer o sube la dosis.`,
+  butNb:n=>` <span style="color:var(--bad)">Pero se expulsaron ${n} vecino(s).</span>`,
+  tEjected:el=>`${el} expulsado`, tN:n=>`${n} átomo(s) expulsado(s)`, tNone:"Sin expulsión", tMission:m=>`Reto completado: ${m}`,
+  mat:{
+    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocapa de carbono en red de panal. Muy estable a 80 kV: con E_d ≈ 21 eV el umbral estático ronda los 105 kV, y las vibraciones lo adelantan un poco."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitruro de boro hexagonal. El boro, más ligero, se expulsa antes que el nitrógeno: sputtering selectivo."},
+    mos2:{name:"MoS₂",bond:"Mo–S proy. 1.82 Å",blurb:"Monocapa 2H vista en [001]: columnas de Mo y columnas de 2 S superpuestos. Puedes vaciar una columna S₂ átomo por átomo."},
+  },
+  missions:{
+    g1:["Estabilidad a 80 kV","Expón un C a 80 kV con ≥ 10⁸ e⁻/Å² sin expulsarlo. Por eso se trabaja a 80 kV."],
+    g2:["Primera monovacancia","Expulsa un C sin dañar ningún vecino."],
+    g3:["Cerca del umbral","Crea una vacancia a 100 kV o menos."],
+    h1:["Sputtering selectivo","Expulsa un B a 100 kV o menos."],
+    h2:["El nitrógeno resiste","Expón un N a 100 kV con ≥ 10⁸ e⁻/Å² y que sobreviva."],
+    h3:["Vacancia de N","Encuentra el voltaje necesario para expulsar un N."],
+    m1:["Vacancia de azufre","Expulsa el S de la cara de salida de una columna S₂."],
+    m2:["A 80 kV también","Crea una vacancia de S a 80 kV o menos."],
+    m4:["Divacancia de S","Vacía por completo una columna S₂ (los dos átomos de S)."],
+    m3:["El Mo es inamovible","Expón un Mo a 300 kV con ≥ 10⁸ e⁻/Å² y comprueba que no se mueve."],
+  },
+},
+en:{
+  restart:"Restart game", restartConfirm:"Sure? Click again", restarted:"Game restarted.", sub:"STEM beam-sputtering simulator · graphene · hBN · MoS₂", langLabel:"Language",
+  intro:"Pick a 2D sample. At the microscope you can <b>park the probe on an atom</b>, choose <b>accelerating voltage, current, exposure time and convergence angle</b>, and fire the beam. Whether the atom is ejected is decided by the McKinley–Feshbach elastic knock-on displacement model, including the zero-point vibrations of the lattice.",
+  back:"← Change sample", model:"Model", reset:"Restore lattice", canvasAria:"Atomic lattice. Click to place the probe.",
+  targetLabel:"Probe target", physLabel:"Target physics", emaxTransf:"Transferred E<sub>max</sub>", thrTitle:"Displacement threshold E_d",
+  pTxt:"Probability of ejecting the target atom in this exposure", fire:"Fire beam",
+  resultInit:"Click an atom to place the probe (spot mode). Then set the parameters and expose.", restored:"Lattice restored.",
+  missionsLabel:"Sample challenges", logLabel:"Exposure log", logEmpty:"No exposures yet.",
+  logHead:["#","Target","kV","pA","t","α","Dose e⁻/Å²","P","Result"], ejectedW:"ejected", intactW:"intact",
+  modelSummary:"Physical model and assumptions",
+  m1:"<b>Maximum energy transferred</b> to a nucleus at rest by an electron of energy E (head-on, relativistic):",
+  m2:"If the atom vibrates with velocity v along the beam, the transfer changes linearly (Meyer et al. 2012):",
+  m3:"v follows a Gaussian with ½M⟨v²⟩ = ½⟨E_phonon⟩, computed from a Debye model at 300 K (zero-point energy included).",
+  m4:"McKinley–Feshbach <b>cross section</b> for T_m &gt; E_d, averaged over the v distribution:",
+  m5:"<b>Probe</b>: Gaussian profile with FWHM² = (0.51λ/α)² + d_source² + d_Cc², with d_source = 0.5 Å and d_Cc = 0.2·C_c·(ΔE/E)·α, C_c = 1.2 mm, ΔE = 0.8 eV (estimate, no chromatic corrector). In an S₂ column the two ejections are sequential (Poisson process).",
+  m6:"Only knock-on is modelled. Ionisation/radiolysis (relevant in hBN and MoS₂), chemical etching and the lower E_d of atoms next to a vacancy are not included. In MoS₂ the S on the beam-exit surface goes first; while it is there, the top S is pushed into the lattice. Once the bottom vacancy exists, the top S has a free column and is treated with the same E_d. θ_D values are approximate effective values. The Gaussian profile underestimates the Airy-disc tails.",
+  elemHead:["Atom","Z","E_d (eV)","θ_D (K)","E_d source"], moRef:"estimate (≫ E_max at 300 kV)",
+  ctrl:{kV:"Accelerating voltage",I:"Probe current",t:"Exposure time (spot)",alpha:"Convergence semi-angle"}, hintKV:"Themis 60–300 kV",
+  hudFov:"FOV", hudProbe:"probe FWHM",
+  noProbe:"No probe. Click the image.", between:"Between atoms", betweenSub:"only tail dose on neighbours",
+  vacancy:"Vacancy", vacancySub:"The column is already empty", column:n=>`column ${n}×S`,
+  sExit:"S on the exit surface", sEntry:"Entrance S (shielded while the bottom S is present)", sLast:"Remaining S: the column is open below", inSpot:"atom in spot",
+  ro:["Total electrons","Dose on target","Knock-on σ (300 K)","Threshold (v=0) in kV","Expected collateral damage","Dose rate"], atoms:"atoms",
+  legendThr:"threshold", legendZ:"HAADF intensity ∝ Z^1.7",
+  notOnAtom:"The probe was not on an atom.", onVac:"The probe is on a vacancy: the column is already empty.", tail:n=>`Even so, the beam tail ejected ${n} atom(s).`, nothing:"Nothing was ejected.",
+  sEntryNo:"<b>No effect on the entrance S.</b> While the bottom S is present, the momentum pushes this S towards the Mo layer, not out of the crystal. Eject the exit-surface S first.",
+  cantEject:"<b>Cannot be ejected.</b>",
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejected!</b> E_max = ${Em} eV vs E_d = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
+  colEmpty2:" <b>S₂ column emptied:</b> S divacancy.", colEmpty:" <b>S₂ column emptied:</b> the second S left too.", lastS:" 1 S remains in the column: it can now be ejected too.",
+  collat:n=>` <span style="color:var(--bad)">Collateral damage: ${n} neighbouring atom(s). Try a finer probe (larger α) or less dose.</span>`,
+  intactZero:(el,Em,Ed)=>`<b>${el} intact.</b> E_max = ${Em} eV is far below E_d = ${Ed} eV; not even zero-point vibrations reach the threshold, so σ = 0. `,
+  moNever:"Mo cannot be ejected at any Themis voltage.", raiseKV:"Raise the voltage.",
+  intactLow:(el,sig,D,P)=>`<b>${el} intact.</b> σ = ${sig} with ${D} e⁻/Å² gives only P = ${P}. Increase the voltage or the dose (current × time).`,
+  survived:(el,P)=>`<b>${el} survived this time.</b> P was ${P}: sputtering is stochastic. Expose again or raise the dose.`,
+  butNb:n=>` <span style="color:var(--bad)">But ${n} neighbour(s) were ejected.</span>`,
+  tEjected:el=>`${el} ejected`, tN:n=>`${n} atom(s) ejected`, tNone:"No ejection", tMission:m=>`Challenge completed: ${m}`,
+  mat:{
+    graphene:{name:"Graphene",bond:"C–C 1.42 Å",blurb:"Single carbon layer on a honeycomb lattice. Very stable at 80 kV: with E_d ≈ 21 eV the static threshold is around 105 kV, and vibrations bring it down a little."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Hexagonal boron nitride. The lighter boron is ejected before nitrogen: selective sputtering."},
+    mos2:{name:"MoS₂",bond:"Mo–S proj. 1.82 Å",blurb:"2H monolayer viewed along [001]: Mo columns and columns of 2 overlapping S. You can empty an S₂ column atom by atom."},
+  },
+  missions:{
+    g1:["Stable at 80 kV","Expose a C at 80 kV with ≥ 10⁸ e⁻/Å² without ejecting it. That is why we work at 80 kV."],
+    g2:["First monovacancy","Eject a C without damaging any neighbour."],
+    g3:["Near threshold","Create a vacancy at 100 kV or less."],
+    h1:["Selective sputtering","Eject a B at 100 kV or less."],
+    h2:["Nitrogen holds","Expose an N at 100 kV with ≥ 10⁸ e⁻/Å² and keep it in place."],
+    h3:["N vacancy","Find the voltage needed to eject an N."],
+    m1:["Sulfur vacancy","Eject the exit-surface S of an S₂ column."],
+    m2:["At 80 kV too","Create an S vacancy at 80 kV or less."],
+    m4:["S divacancy","Empty an S₂ column completely (both S atoms)."],
+    m3:["Mo won't budge","Expose a Mo at 300 kV with ≥ 10⁸ e⁻/Å² and check that it stays."],
+  },
+},
+pt:{
+  restart:"Reiniciar jogo", restartConfirm:"Tens a certeza? Clica outra vez", restarted:"Jogo reiniciado.", sub:"Simulador de sputtering por feixe em STEM · grafeno · hBN · MoS₂", langLabel:"Idioma",
+  intro:"Escolhe uma amostra 2D. No microscópio podes <b>colocar a sonda sobre um átomo</b>, escolher <b>tensão, corrente, tempo de exposição e ângulo de convergência</b> e disparar o feixe. A ejeção do átomo é decidida pelo modelo de deslocamento por impacto elástico (knock-on) de McKinley–Feshbach, incluindo as vibrações de ponto zero da rede.",
+  back:"← Mudar amostra", model:"Modelo", reset:"Restaurar rede", canvasAria:"Rede atómica. Clica para colocar a sonda.",
+  targetLabel:"Alvo da sonda", physLabel:"Física do alvo", emaxTransf:"E<sub>max</sub> transferida", thrTitle:"Limiar de deslocamento E_d",
+  pTxt:"Probabilidade de ejetar o átomo alvo nesta exposição", fire:"Expor feixe",
+  resultInit:"Clica num átomo para colocar a sonda (modo spot). Depois ajusta os parâmetros e expõe.", restored:"Rede restaurada.",
+  missionsLabel:"Desafios da amostra", logLabel:"Registo de exposições", logEmpty:"Ainda não há exposições.",
+  logHead:["#","Alvo","kV","pA","t","α","Dose e⁻/Å²","P","Resultado"], ejectedW:"ejetado", intactW:"intacto",
+  modelSummary:"Modelo físico e pressupostos",
+  m1:"<b>Energia máxima transferida</b> a um núcleo em repouso por um eletrão de energia E (colisão frontal, relativista):",
+  m2:"Se o átomo vibra com velocidade v ao longo do feixe, a transferência varia linearmente (Meyer et al. 2012):",
+  m3:"v segue uma gaussiana com ½M⟨v²⟩ = ½⟨E_fonão⟩, calculada com um modelo de Debye a 300 K (inclui energia de ponto zero).",
+  m4:"<b>Secção eficaz</b> de McKinley–Feshbach para T_m &gt; E_d, média sobre a distribuição de v:",
+  m5:"<b>Sonda</b>: perfil gaussiano com FWHM² = (0.51λ/α)² + d_fonte² + d_Cc², com d_fonte = 0.5 Å e d_Cc = 0.2·C_c·(ΔE/E)·α, C_c = 1.2 mm, ΔE = 0.8 eV (estimativa, sem corretor cromático). Numa coluna S₂ as duas ejeções são sequenciais (processo de Poisson).",
+  m6:"Só se modela o knock-on. Não se incluem ionização/radiólise (relevantes em hBN e MoS₂), gravação química, nem a redução de E_d em átomos vizinhos de uma lacuna. No MoS₂ sai primeiro o S da face de saída do feixe; enquanto lá estiver, o S superior é empurrado para a rede. Criada a lacuna inferior, o S superior tem a coluna livre e é tratado com o mesmo E_d. Os θ_D são valores efetivos aproximados. O perfil gaussiano subestima as caudas do disco de Airy.",
+  elemHead:["Átomo","Z","E_d (eV)","θ_D (K)","Fonte E_d"], moRef:"estimativa (≫ E_max a 300 kV)",
+  ctrl:{kV:"Tensão de aceleração",I:"Corrente da sonda",t:"Tempo de exposição (spot)",alpha:"Semiângulo de convergência"}, hintKV:"Themis 60–300 kV",
+  hudFov:"FOV", hudProbe:"sonda FWHM",
+  noProbe:"Sem sonda. Clica na imagem.", between:"Entre átomos", betweenSub:"apenas dose de cauda nos vizinhos",
+  vacancy:"Lacuna", vacancySub:"A coluna já está vazia", column:n=>`coluna ${n}×S`,
+  sExit:"S da face de saída", sEntry:"S de entrada (protegido enquanto existir o S inferior)", sLast:"S restante: a coluna está livre por baixo", inSpot:"átomo em spot",
+  ro:["Eletrões totais","Dose no alvo","σ knock-on (300 K)","Limiar (v=0) em kV","Dano colateral esperado","Taxa de dose"], atoms:"átomos",
+  legendThr:"limiar", legendZ:"Intensidade HAADF ∝ Z^1.7",
+  notOnAtom:"A sonda não estava sobre um átomo.", onVac:"A sonda está sobre uma lacuna: a coluna já está vazia.", tail:n=>`Mesmo assim, a cauda do feixe ejetou ${n} átomo(s).`, nothing:"Nada foi ejetado.",
+  sEntryNo:"<b>Sem efeito no S de entrada.</b> Enquanto existir o S inferior, o impulso empurra este S para a camada de Mo, não para fora do cristal. Ejeta primeiro o S da face de saída.",
+  cantEject:"<b>Não pode ser ejetado.</b>",
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejetado!</b> E_max = ${Em} eV face a E_d = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
+  colEmpty2:" <b>Coluna S₂ vazia:</b> dilacuna de S.", colEmpty:" <b>Coluna S₂ vazia:</b> o segundo S também saiu.", lastS:" Resta 1 S na coluna: agora também pode ser ejetado.",
+  collat:n=>` <span style="color:var(--bad)">Dano colateral: ${n} átomo(s) vizinho(s). Experimenta uma sonda mais fina (α maior) ou menos dose.</span>`,
+  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E_max = ${Em} eV é muito inferior a E_d = ${Ed} eV; nem as vibrações de ponto zero atingem o limiar, por isso σ = 0. `,
+  moNever:"O Mo não pode ser ejetado com nenhuma tensão do Themis.", raiseKV:"Aumenta a tensão.",
+  intactLow:(el,sig,D,P)=>`<b>${el} intacto.</b> σ = ${sig} com ${D} e⁻/Å² dá apenas P = ${P}. Aumenta a tensão ou a dose (corrente × tempo).`,
+  survived:(el,P)=>`<b>${el} sobreviveu desta vez.</b> P era ${P}: o sputtering é estocástico. Volta a expor ou aumenta a dose.`,
+  butNb:n=>` <span style="color:var(--bad)">Mas foram ejetados ${n} vizinho(s).</span>`,
+  tEjected:el=>`${el} ejetado`, tN:n=>`${n} átomo(s) ejetado(s)`, tNone:"Sem ejeção", tMission:m=>`Desafio concluído: ${m}`,
+  mat:{
+    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocamada de carbono numa rede em favo de mel. Muito estável a 80 kV: com E_d ≈ 21 eV o limiar estático ronda os 105 kV, e as vibrações antecipam-no um pouco."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitreto de boro hexagonal. O boro, mais leve, é ejetado antes do azoto: sputtering seletivo."},
+    mos2:{name:"MoS₂",bond:"Mo–S proj. 1.82 Å",blurb:"Monocamada 2H vista em [001]: colunas de Mo e colunas de 2 S sobrepostos. Podes esvaziar uma coluna S₂ átomo a átomo."},
+  },
+  missions:{
+    g1:["Estabilidade a 80 kV","Expõe um C a 80 kV com ≥ 10⁸ e⁻/Å² sem o ejetar. É por isso que se trabalha a 80 kV."],
+    g2:["Primeira monolacuna","Ejeta um C sem danificar nenhum vizinho."],
+    g3:["Perto do limiar","Cria uma lacuna a 100 kV ou menos."],
+    h1:["Sputtering seletivo","Ejeta um B a 100 kV ou menos."],
+    h2:["O azoto resiste","Expõe um N a 100 kV com ≥ 10⁸ e⁻/Å² e mantém-no no lugar."],
+    h3:["Lacuna de N","Encontra a tensão necessária para ejetar um N."],
+    m1:["Lacuna de enxofre","Ejeta o S da face de saída de uma coluna S₂."],
+    m2:["Também a 80 kV","Cria uma lacuna de S a 80 kV ou menos."],
+    m4:["Dilacuna de S","Esvazia por completo uma coluna S₂ (os dois átomos de S)."],
+    m3:["O Mo não se move","Expõe um Mo a 300 kV com ≥ 10⁸ e⁻/Å² e confirma que fica no lugar."],
+  },
+},
+};
+let LANG="en";
+try{ const s=localStorage.getItem("knockon-lang"); if(s&&STR[s]) LANG=s; else { const n=(navigator.language||"en").slice(0,2); if(STR[n]) LANG=n; } }catch(e){}
+const L=()=>STR[LANG];
+
+// ======================= PHYSICAL CONSTANTS =======================
+const ME = 510998.95;        // eV, m0c^2
+const AMU = 931.494e6;       // eV
+const KB = 8.617333e-5;      // eV/K
+const ALPHA = 1/137.036;
+const E_CHARGE = 1.602176634e-19;
+const T_ROOM = 300;
+
+const ELEM = {
+  C:  {Z:6,  A:12.011, Ed:21.14, TD:1287, color:"#a7b0bb", ref:"Meyer et al., PRL 108, 196102 (2012)"},
+  B:  {Z:5,  A:10.81,  Ed:19.36, TD:1200, color:"#f2a7b8", ref:"Kotakoski et al., PRB 82, 113404 (2010)"},
+  N:  {Z:7,  A:14.007, Ed:23.06, TD:1200, color:"#7d96ff", ref:"Kotakoski et al., PRB 82, 113404 (2010)"},
+  Mo: {Z:42, A:95.95,  Ed:20.0,  TD:450,  color:"#53c4b3", ref:null},
+  S:  {Z:16, A:32.06,  Ed:6.9,   TD:600,  color:"#e9d45c", ref:"Komsa et al., PRL 109, 035503 (2012)"},
+};
+
+// ======================= SAMPLES =======================
+const MATERIALS = {
+  graphene:{formula:"C",a:2.46,basis:[{atoms:[{el:"C"}]},{atoms:[{el:"C"}]}]},
+  hbn:{formula:"BN",a:2.504,basis:[{atoms:[{el:"B"}]},{atoms:[{el:"N"}]}]},
+  mos2:{formula:"MoS₂ (2H)",a:3.16,basis:[{atoms:[{el:"Mo"}]},{atoms:[{el:"S",layer:"sup"},{el:"S",layer:"inf"}]}]},
+};
+const FOV = 30; // Å
+const OPTIONS = { kV:[60,80,100,120,160,200,300], I:[5,20,50,100,200], t:[0.01,0.1,1,5,20], alpha:[10,15,20,25,30] };
+const state = { mat:"graphene", sites:[], probe:null, view:"haadf", kV:80, I:50, t:1, alpha:25, log:[], missions:{}, anim:null, hover:null, lastResult:null };
+
+// ======================= PHYSICS =======================
+function lambdaA(kV){ const V=kV*1e3; return 12.2643/Math.sqrt(V*(1+0.97848e-6*V)); } // Å
+function Emax0(E,A){ return 2*E*(E+2*ME)/(A*AMU); }
+function pcOf(E){ return Math.sqrt(E*(E+2*ME)); }
+function mcKinley(E,Z,Ed,Tm){
+  if(Tm<=Ed) return 0;
+  const g=1+E/ME, b2=1-1/(g*g), b=Math.sqrt(b2), x=Tm/Ed, lx=Math.log(x);
+  const pre=0.24940*Z*Z*(1-b2)/(b2*b2); // barn
+  return Math.max(0,pre*((x-1)-b2*lx+Math.PI*Z*ALPHA*b*(2*Math.sqrt(x)-lx-2)));
+}
+const zpCache={};
+function debyeKinetic(TD,T=T_ROOM){
+  const key=TD+"_"+T; if(zpCache[key]) return zpCache[key];
+  const n=1500; let s=0;
+  for(let i=1;i<=n;i++){ const w=i/n, e=KB*TD*w, occ=1/Math.expm1(e/(KB*T)); s+=(i===n?0.5:1)*e*(0.5+occ)*w*w; }
+  return zpCache[key]=3*s/n;
+}
+const sigCache={};
+function sigmaEff(el,kV){
+  const key=el+"_"+kV; if(key in sigCache) return sigCache[key];
+  const d=ELEM[el], E=kV*1e3, E0=Emax0(E,d.A), pc=pcOf(E);
+  const sv=Math.sqrt(debyeKinetic(d.TD)/(d.A*AMU));
+  let num=0,den=0;
+  for(let i=-200;i<=200;i++){ const u=i/40, w=Math.exp(-0.5*u*u); num+=w*mcKinley(E,d.Z,d.Ed,E0+2*pc*u*sv); den+=w; }
+  return sigCache[key]=num/den;
+}
+function probeFWHM(kV,alphaMrad){
+  const lam=lambdaA(kV), a=alphaMrad*1e-3;
+  const dDiff=0.51*lam/a, dSrc=0.5, dCc=0.2*1.2e7*(0.8/(kV*1e3))*a;
+  return Math.sqrt(dDiff*dDiff+dSrc*dSrc+dCc*dCc);
+}
+function nElectrons(){ return state.I*1e-12*state.t/E_CHARGE; }
+function doseAt(r){ const w=probeFWHM(state.kV,state.alpha), k=4*Math.LN2; return nElectrons()*(k/(Math.PI*w*w))*Math.exp(-k*r*r/(w*w)); }
+// Exit-surface S goes first; the entrance (top) S becomes sputterable once the bottom S of its column is gone.
+function sputterable(site,atom){
+  if(!atom.present) return false;
+  if(atom.layer==="sup") return !site.atoms.some(a=>a.layer==="inf"&&a.present);
+  return true;
+}
+function presentS(site){ return site.atoms.filter(a=>a.el==="S"&&a.present).length; }
+
+// ======================= LATTICE =======================
+function buildLattice(key){
+  const m=MATERIALS[key], a=m.a, sites=[], margin=1.0;
+  const a2=[a/2,a*Math.sqrt(3)/2], bOff=[a/2,a/(2*Math.sqrt(3))], N=Math.ceil(FOV/a)+6;
+  for(let i=-N;i<=N;i++) for(let j=-N;j<=N;j++){
+    const x0=i*a+j*a2[0], y0=j*a2[1];
+    [[0,0],bOff].forEach((off,k)=>{
+      const x=x0+off[0], y=y0+off[1];
+      if(x>margin&&x<FOV-margin&&y>margin&&y<FOV-margin) sites.push({x,y,sub:k,atoms:m.basis[k].atoms.map(at=>({...at,present:true,fade:1}))});
+    });
+  }
+  const dnn=a/Math.sqrt(3)*1.15;
+  sites.forEach(s=>s.nb=[]);
+  for(let i=0;i<sites.length;i++) for(let j=i+1;j<sites.length;j++){
+    const dx=sites[i].x-sites[j].x, dy=sites[i].y-sites[j].y;
+    if(dx*dx+dy*dy<dnn*dnn) sites[i].nb.push(j);
+  }
+  return sites;
+}
+
+// ======================= RENDER =======================
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+const W=cv.width, SC=W/FOV;
+let haadfBuf=null, noise=null;
+function makeNoise(){ noise=new Float32Array(W*W); let s=12345; for(let i=0;i<noise.length;i++){ s=(s*1103515245+12345)&0x7fffffff; const u=s/0x7fffffff; s=(s*1103515245+12345)&0x7fffffff; const v=s/0x7fffffff; noise[i]=Math.sqrt(-2*Math.log(u+1e-9))*Math.cos(2*Math.PI*v); } }
+function columnZ(site){ return site.atoms.reduce((acc,at)=>acc+(at.present?1:Math.max(0,at.fade))*Math.pow(ELEM[at.el].Z,1.7),0); }
+function pristineMax(){ return Math.max(...MATERIALS[state.mat].basis.map(b=>b.atoms.reduce((a,at)=>a+Math.pow(ELEM[at.el].Z,1.7),0))); }
+function renderHAADF(){
+  const buf=new Float32Array(W*W);
+  const w=Math.max(probeFWHM(state.kV,state.alpha),0.55);
+  const sg=w/2.3548*SC, inv=1/(2*sg*sg), R=Math.ceil(sg*3.5);
+  for(const s of state.sites){
+    const I=columnZ(s); if(I<=0) continue;
+    const cx=s.x*SC, cy=s.y*SC;
+    const x0=Math.max(0,Math.floor(cx-R)), x1=Math.min(W-1,Math.ceil(cx+R)), y0=Math.max(0,Math.floor(cy-R)), y1=Math.min(W-1,Math.ceil(cy+R));
+    for(let y=y0;y<=y1;y++){ const dy=y-cy; for(let x=x0;x<=x1;x++){ const dx=x-cx; buf[y*W+x]+=I*Math.exp(-(dx*dx+dy*dy)*inv); } }
+  }
+  const norm=1/pristineMax(), img=ctx.createImageData(W,W), d=img.data;
+  for(let i=0;i<buf.length;i++){
+    let v=buf[i]*norm; v=Math.pow(Math.min(1,Math.max(0,v)),0.8)*0.92+0.04+noise[i]*0.035;
+    v=Math.max(0,Math.min(1,v))*255;
+    d[i*4]=v; d[i*4+1]=v; d[i*4+2]=Math.min(255,v*1.04+3); d[i*4+3]=255;
+  }
+  haadfBuf=img;
+}
+function anyPresent(s){ return s.atoms.some(a=>a.present); }
+function shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255; r=Math.round(r*(1+f)); g=Math.round(g*(1+f)); b=Math.round(b*(1+f)); return `rgb(${r},${g},${b})`; }
+function drawBall(){
+  ctx.fillStyle="#0a0e18"; ctx.fillRect(0,0,W,W);
+  const S=state.sites;
+  ctx.lineWidth=3; ctx.strokeStyle="rgba(150,165,190,.35)"; ctx.beginPath();
+  for(const s of S){ if(!anyPresent(s)) continue; for(const j of s.nb){ const t=S[j]; if(!anyPresent(t)) continue; ctx.moveTo(s.x*SC,s.y*SC); ctx.lineTo(t.x*SC,t.y*SC);} }
+  ctx.stroke();
+  for(const s of S){
+    s.atoms.forEach((at,k)=>{
+      const a=at.present?1:at.fade; if(a<=0.01) return;
+      const el=ELEM[at.el], r=(at.el==="Mo"?11:at.el==="S"?9:8)*(at.present?1:(0.4+0.6*a));
+      const off=(s.atoms.length>1)?(k===0?-2.5:2.5):0, X=s.x*SC+off, Y=s.y*SC+off;
+      ctx.globalAlpha=a; ctx.beginPath(); ctx.arc(X,Y,r,0,Math.PI*2);
+      const g=ctx.createRadialGradient(X-r*.35,Y-r*.35,r*.15,X,Y,r);
+      g.addColorStop(0,"#ffffff"); g.addColorStop(.25,el.color); g.addColorStop(1,shade(el.color,-.45));
+      ctx.fillStyle=g; ctx.fill(); ctx.globalAlpha=1;
+    });
+    const missing=s.atoms.some(a=>!a.present&&a.fade<=0.01);
+    if(missing){
+      const full=!anyPresent(s);
+      ctx.setLineDash([3,3]); ctx.strokeStyle=full?"rgba(239,106,91,.8)":"rgba(239,106,91,.5)"; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(s.x*SC,s.y*SC,full?8:12,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+}
+function draw(){
+  if(state.view==="haadf"){ if(!haadfBuf) renderHAADF(); ctx.putImageData(haadfBuf,0,0); } else drawBall();
+  if(state.hover!==null && state.hover!==targetIndex()){ const s=state.sites[state.hover]; ctx.strokeStyle="rgba(255,255,255,.45)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(s.x*SC,s.y*SC,14,0,Math.PI*2); ctx.stroke(); }
+  if(state.probe){
+    const px=state.probe.x*SC, py=state.probe.y*SC, w=probeFWHM(state.kV,state.alpha)*SC, an=state.anim;
+    if(an){ const p=an.p, rad=w*(0.5+p*2.5), g=ctx.createRadialGradient(px,py,0,px,py,rad); g.addColorStop(0,`rgba(255,214,140,${0.9*(1-p)})`); g.addColorStop(1,"rgba(243,168,59,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,rad,0,Math.PI*2); ctx.fill(); }
+    ctx.strokeStyle="#f3a83b"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(px,py,w/2,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([4,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.arc(px,py,w,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(px-w-10,py); ctx.lineTo(px-w/2-3,py); ctx.moveTo(px+w/2+3,py); ctx.lineTo(px+w+10,py);
+    ctx.moveTo(px,py-w-10); ctx.lineTo(px,py-w/2-3); ctx.moveTo(px,py+w/2+3); ctx.lineTo(px,py+w+10); ctx.stroke();
+  }
+}
+
+// ======================= UI =======================
+const $=id=>document.getElementById(id);
+function fmtSci(x){ if(!isFinite(x)||x===0) return "0"; const e=Math.floor(Math.log10(Math.abs(x))); const m=x/Math.pow(10,e); const sup=String(e).split("").map(c=>"⁰¹²³⁴⁵⁶⁷⁸⁹"["0123456789".indexOf(c)]||"⁻").join(""); return (Math.abs(e)<=2? x.toPrecision(3).replace(/\.?0+$/,"") : `${m.toFixed(1)}×10${sup}`); }
+function fmtSigma(s){ if(s===0) return "0 b"; if(s<1e-3) return fmtSci(s)+" b"; return (s<10?s.toFixed(2):s.toFixed(1))+" b"; }
+function fmtP(p){ if(p<0.001) return p===0?"0 %":"<0.1 %"; if(p>0.999) return ">99.9 %"; return (p*100).toFixed(p<0.1?1:0)+" %"; }
+function fmtT(t){ return t<1? (t*1000)+" ms" : t+" s"; }
+function thresholdKV(el){ const d=ELEM[el], target=d.Ed*d.A*AMU/2; return ((-2*ME+Math.sqrt(4*ME*ME+4*target))/2/1e3).toFixed(0); }
+
+function buildSamples(){
+  const host=$("samples"); host.innerHTML="";
+  Object.entries(MATERIALS).forEach(([key,m])=>{
+    const tm=L().mat[key];
+    const b=document.createElement("button"); b.className="sample"; b.type="button";
+    const c=document.createElement("canvas"); c.width=480; c.height=300; b.appendChild(c);
+    const body=document.createElement("div"); body.className="body";
+    body.innerHTML=`<div class="name">${tm.name}</div><div class="facts">${m.formula} · a = ${m.a} Å · ${tm.bond}</div><p>${tm.blurb}</p>`;
+    b.appendChild(body); b.addEventListener("click",()=>openLab(key)); host.appendChild(b);
+    drawPreview(c,key);
+  });
+}
+function drawPreview(c,key){
+  const g=c.getContext("2d"), m=MATERIALS[key], sc=26, a=m.a;
+  const img=g.createImageData(c.width,c.height), d=img.data, buf=new Float32Array(c.width*c.height);
+  const pts=[], N=14;
+  for(let i=-N;i<=N;i++) for(let j=-N;j<=N;j++){ const x0=i*a+j*a/2, y0=j*a*Math.sqrt(3)/2; pts.push([x0,y0,0],[x0+a/2,y0+a/(2*Math.sqrt(3)),1]); }
+  const maxI=Math.max(...m.basis.map(b=>b.atoms.reduce((s,at)=>s+Math.pow(ELEM[at.el].Z,1.7),0)));
+  const sg=0.32*sc, inv=1/(2*sg*sg), R=Math.ceil(sg*3.5);
+  for(const [x,y,k] of pts){
+    const cx=x*sc+c.width/2-40, cy=y*sc+c.height/2; if(cx<-R||cx>c.width+R||cy<-R||cy>c.height+R) continue;
+    const I=m.basis[k].atoms.reduce((s,at)=>s+Math.pow(ELEM[at.el].Z,1.7),0)/maxI;
+    for(let yy=Math.max(0,Math.floor(cy-R));yy<=Math.min(c.height-1,cy+R);yy++) for(let xx=Math.max(0,Math.floor(cx-R));xx<=Math.min(c.width-1,cx+R);xx++){ const dx=xx-cx,dy=yy-cy; buf[yy*c.width+xx]+=I*Math.exp(-(dx*dx+dy*dy)*inv); }
+  }
+  for(let i=0;i<buf.length;i++){ const v=Math.min(255,Math.pow(Math.min(1,buf[i]),0.8)*235+8); d[i*4]=v; d[i*4+1]=v; d[i*4+2]=Math.min(255,v*1.05); d[i*4+3]=255; }
+  g.putImageData(img,0,0);
+}
+
+function buildControls(){
+  const fmts={kV:v=>v+" kV",I:v=>v+" pA",t:fmtT,alpha:v=>v+" mrad"};
+  const host=$("controls"); host.innerHTML="";
+  ["kV","I","t","alpha"].forEach(key=>{
+    const wrap=document.createElement("div"); wrap.className="ctrl";
+    wrap.innerHTML=`<div class="head"><span class="label">${L().ctrl[key]}</span><span class="hint">${key==="kV"?L().hintKV:""}</span></div>`;
+    const chips=document.createElement("div"); chips.className="chips"; chips.setAttribute("role","group"); chips.setAttribute("aria-label",L().ctrl[key]);
+    OPTIONS[key].forEach(v=>{
+      const b=document.createElement("button"); b.type="button"; b.className="chip"; b.id=`opt_${key}_${String(v).replace(".","_")}`;
+      b.textContent=fmts[key](v); b.setAttribute("aria-pressed",String(state[key]===v));
+      b.addEventListener("click",()=>{ state[key]=v; chips.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); if(key==="kV"||key==="alpha") haadfBuf=null; update(); });
+      chips.appendChild(b);
+    });
+    wrap.appendChild(chips); host.appendChild(wrap);
+  });
+}
+
+function nearestSite(p){ let best=null,bd=1e9; state.sites.forEach((s,i)=>{ const d=Math.hypot(s.x-p.x,s.y-p.y); if(d<bd){bd=d;best=i;} }); return {best,bd}; }
+function targetIndex(){ if(!state.probe) return null; const {best,bd}=nearestSite(state.probe); return bd<0.75?best:null; }
+function targetAtom(site){
+  if(!site) return null;
+  const pres=site.atoms.filter(a=>a.present); if(!pres.length) return null;
+  return pres.find(a=>sputterable(site,a)) || pres[0];
+}
+
+function update(){
+  const T=L(), lam=lambdaA(state.kV), w=probeFWHM(state.kV,state.alpha), Ne=nElectrons();
+  const ti=targetIndex(), site=ti!==null?state.sites[ti]:null, at=targetAtom(site);
+  $("hudL").innerHTML=`${T.mat[state.mat].name} · ${T.hudFov} ${FOV} Å<br>${state.kV} kV · ${state.I} pA · α ${state.alpha} mrad`;
+  $("hudR").innerHTML=`${T.hudProbe} ${w.toFixed(2)} Å<br>λ ${(lam*100).toFixed(2)} pm`;
+  $("scalebar").style.width=(5/FOV*100)+"%";
+
+  const tb=$("targetBox");
+  if(!state.probe) tb.innerHTML=`<div class="t" style="color:var(--muted)">${T.noProbe}</div>`;
+  else if(!site) tb.innerHTML=`<div class="dot" style="background:var(--panel-2);border:1px solid var(--line)"></div><div class="t">${T.between}<small>(${state.probe.x.toFixed(1)}, ${state.probe.y.toFixed(1)}) Å · ${T.betweenSub}</small></div>`;
+  else if(!at) tb.innerHTML=`<div class="dot" style="background:transparent;border:1.5px dashed var(--bad)"></div><div class="t">${T.vacancy}<small>${T.vacancySub}</small></div>`;
+  else {
+    const isS2=site.atoms.length>1, nS=presentS(site);
+    const col=isS2?` · ${T.column(nS)}`:"";
+    let extra=T.inSpot;
+    if(isS2) extra = at.layer==="inf" ? T.sExit : (sputterable(site,at) ? T.sLast : T.sEntry);
+    tb.innerHTML=`<div class="dot" style="background:${ELEM[at.el].color}">${at.el}</div><div class="t">${at.el} · Z = ${ELEM[at.el].Z} · M = ${ELEM[at.el].A} u${col}<small>${extra} · E_d = ${ELEM[at.el].Ed} eV</small></div>`;
+  }
+
+  let Em=0,Ed=null,sig=0,D=0,P=0,coll=0;
+  if(at){ Em=Emax0(state.kV*1e3,ELEM[at.el].A); Ed=ELEM[at.el].Ed; sig=sputterable(site,at)?sigmaEff(at.el,state.kV):0; D=doseAt(Math.hypot(site.x-state.probe.x,site.y-state.probe.y)); P=1-Math.exp(-sig*1e-8*D); }
+  if(state.probe){
+    state.sites.forEach((s,i)=>{ if(i===ti) return; const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>4*w) return; const d=doseAt(r); s.atoms.forEach(a=>{ if(sputterable(s,a)) coll+=1-Math.exp(-sigmaEff(a.el,state.kV)*1e-8*d); }); });
+  }
+  const scaleMax=Math.max(30,(Ed||0)*1.4,Em*1.1);
+  $("gFill").style.width=(Math.min(Em,scaleMax)/scaleMax*100)+"%";
+  $("gThr").style.left=Ed?`calc(${Ed/scaleMax*100}% - 1px)`:"-10px";
+  $("gThr").style.display=Ed?"block":"none";
+  $("gThr").title=T.thrTitle;
+  $("gMax").textContent=scaleMax.toFixed(0)+" eV";
+  $("gaugeTxt").textContent=at?`${Em.toFixed(2)} eV vs E_d ${Ed} eV`:"—";
+  $("gFill").style.background=at?(Em>=Ed?"var(--ok)":"var(--beam)"):"var(--line)";
+
+  const vals=[ fmtSci(Ne), at?fmtSci(D)+" e⁻/Å²":"—", at?fmtSigma(sig):"—", at?thresholdKV(at.el)+" kV":"—",
+    state.probe?coll.toFixed(coll<0.1?3:2)+" "+T.atoms:"—", fmtSci(state.I*1e-12/E_CHARGE*4*Math.LN2/(Math.PI*w*w))+" e⁻/Å²·s" ];
+  $("readouts").innerHTML=vals.map((v,i)=>`<div class="ro"><span class="v">${v}</span><span class="k">${T.ro[i]}</span></div>`).join("");
+  $("pBig").textContent=at?fmtP(P):"—";
+  $("pBig").style.color=!at?"var(--muted)":P>0.5?"var(--ok)":P>0.05?"var(--warn)":"var(--fg)";
+  $("fireBtn").disabled=!state.probe||!!state.anim;
+  draw();
+}
+
+// ======================= EXPOSURE =======================
+function expose(){
+  if(!state.probe||state.anim) return;
+  const ti=targetIndex(), site=ti!==null?state.sites[ti]:null, at=targetAtom(site);
+  const w=probeFWHM(state.kV,state.alpha);
+  const ejected=[]; let targetEjected=false, targetP=0, targetD=0, targetSig=0, secondS=false;
+  const sputSnapshot = (site&&at) ? sputterable(site,at) : false;
+  state.sites.forEach((s,i)=>{
+    const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>5*w) return;
+    const D=doseAt(r);
+    const bottom=s.atoms.find(a=>a.layer==="inf"), top=s.atoms.find(a=>a.layer==="sup");
+    if(bottom&&top&&bottom.present&&top.present){
+      // S2 column: sequential Poisson ejections with equal rates (x = σD)
+      const x=sigmaEff("S",state.kV)*1e-8*D, p1=1-Math.exp(-x);
+      if(i===ti){ targetP=p1; targetD=D; targetSig=sigmaEff("S",state.kV); }
+      if(Math.random()<p1){
+        bottom.present=false; ejected.push({i,el:"S"}); if(i===ti) targetEjected=true;
+        const p2 = p1>0 ? (1-Math.exp(-x)*(1+x))/p1 : 0;
+        if(Math.random()<p2){ top.present=false; ejected.push({i,el:"S"}); if(i===ti) secondS=true; }
+      }
+      return;
+    }
+    s.atoms.forEach(a=>{
+      if(!sputterable(s,a)) return;
+      const sg=sigmaEff(a.el,state.kV), p=1-Math.exp(-sg*1e-8*D);
+      if(i===ti&&a===at){ targetP=p; targetD=D; targetSig=sg; }
+      if(Math.random()<p){ a.present=false; ejected.push({i,el:a.el}); if(i===ti&&a===at) targetEjected=true; }
+    });
+  });
+  if(at&&!sputSnapshot) targetD=doseAt(Math.hypot(site.x-state.probe.x,site.y-state.probe.y));
+  ejected.forEach(e=>state.sites[e.i].atoms.forEach(a=>{ if(!a.present&&a.fade===1) a.fade=0.999; }));
+  const fromTarget=ejected.filter(e=>e.i===ti).length;
+  const rec={n:state.log.length+1,mat:state.mat,kV:state.kV,I:state.I,t:state.t,alpha:state.alpha,el:at?at.el:null,vac:!!(site&&!at),sput:sputSnapshot,
+    D:targetD,P:targetP,sig:targetSig,hit:targetEjected,secondS,ejected,collateral:ejected.length-fromTarget,
+    colEmpty: site&&site.atoms.length>1 ? presentS(site)===0 : false,
+    sLeft: site&&site.atoms.length>1 ? presentS(site) : null};
+  state.log.unshift(rec);
+  animate(()=>{ haadfBuf=null; state.lastResult=rec; report(rec); checkMissions(rec); renderLog(); update(); });
+}
+function animate(done){
+  const t0=performance.now(), dur=matchMedia("(prefers-reduced-motion: reduce)").matches?50:900;
+  state.anim={p:0}; $("fireBtn").disabled=true;
+  function step(now){
+    const p=Math.min(1,(now-t0)/dur); state.anim.p=p;
+    state.sites.forEach(s=>s.atoms.forEach(a=>{ if(!a.present&&a.fade>0&&a.fade<1) a.fade=Math.max(0.001,0.999-p*1.1); }));
+    if(state.view==="haadf"){ haadfBuf=null; renderHAADF(); }
+    draw();
+    if(p<1) requestAnimationFrame(step); else { state.sites.forEach(s=>s.atoms.forEach(a=>{ if(!a.present) a.fade=0; })); state.anim=null; done(); }
+  }
+  requestAnimationFrame(step);
+}
+function report(rec){
+  const T=L(), el=$("result");
+  if(!rec){ el.className="result neutral"; el.innerHTML=T.resultInit; return; }
+  const Em=rec.el?Emax0(rec.kV*1e3,ELEM[rec.el].A):0, Ed=rec.el?ELEM[rec.el].Ed:0;
+  let cls="neutral", html="";
+  if(!rec.el){ html=`<b>${rec.vac?T.onVac:T.notOnAtom}</b> ${rec.ejected.length?T.tail(rec.ejected.length):T.nothing}`; }
+  else if(!rec.sput){ html = rec.el==="S" ? T.sEntryNo : T.cantEject; }
+  else if(rec.hit){
+    cls="ok";
+    html=T.ejected(rec.el,Em.toFixed(2),Ed,fmtSigma(rec.sig),fmtSci(rec.D),fmtP(rec.P));
+    if(rec.secondS) html+=T.colEmpty; else if(rec.colEmpty) html+=T.colEmpty2; else if(rec.sLeft===1) html+=T.lastS;
+    if(rec.collateral>0) html+=T.collat(rec.collateral);
+  } else {
+    cls="bad";
+    if(rec.sig===0) html=T.intactZero(rec.el,Em.toFixed(2),Ed)+(rec.el==="Mo"?T.moNever:T.raiseKV);
+    else if(rec.P<0.05) html=T.intactLow(rec.el,fmtSigma(rec.sig),fmtSci(rec.D),fmtP(rec.P));
+    else html=T.survived(rec.el,fmtP(rec.P));
+    if(rec.collateral>0) html+=T.butNb(rec.collateral);
+  }
+  el.className="result "+cls; el.innerHTML=html;
+}
+let toastTimer=null;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.opacity=1; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.opacity=0,1800); }
+function toastFor(rec){ const T=L(); toast(rec.hit?T.tEjected(rec.el):(rec.ejected.length?T.tN(rec.ejected.length):T.tNone)); }
+
+function renderLog(){
+  const T=L(), host=$("log"), rows=state.log.filter(r=>r.mat===state.mat);
+  if(!rows.length){ host.innerHTML=`<div class="empty">${T.logEmpty}</div>`; return; }
+  host.innerHTML=`<table><thead><tr>${T.logHead.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${
+    rows.map(r=>`<tr><td>${r.n}</td><td>${r.el||"—"}</td><td>${r.kV}</td><td>${r.I}</td><td>${fmtT(r.t)}</td><td>${r.alpha}</td><td>${r.el?fmtSci(r.D):"—"}</td><td>${r.el?fmtP(r.P):"—"}</td><td class="${r.hit?"y":"n"}">${r.hit?T.ejectedW+(r.secondS?" ×2":""):T.intactW}${r.collateral?` +${r.collateral}`:""}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+
+// ======================= CHALLENGES =======================
+const MISSIONS={
+  graphene:[
+    {id:"g1",test:r=>r.el==="C"&&r.kV<=80&&r.D>=1e8&&!r.hit},
+    {id:"g2",test:r=>r.el==="C"&&r.hit&&r.collateral===0},
+    {id:"g3",test:r=>r.el==="C"&&r.hit&&r.kV<=100},
+  ],
+  hbn:[
+    {id:"h1",test:r=>r.el==="B"&&r.hit&&r.kV<=100},
+    {id:"h2",test:r=>r.el==="N"&&r.kV<=100&&r.D>=1e8&&!r.hit},
+    {id:"h3",test:r=>r.el==="N"&&r.hit},
+  ],
+  mos2:[
+    {id:"m1",test:r=>r.el==="S"&&r.hit},
+    {id:"m2",test:r=>r.el==="S"&&r.hit&&r.kV<=80},
+    {id:"m4",test:r=>r.el==="S"&&r.colEmpty},
+    {id:"m3",test:r=>r.el==="Mo"&&r.kV===300&&r.D>=1e8&&!r.hit},
+  ],
+};
+function renderMissions(){
+  const T=L();
+  $("missions").innerHTML=MISSIONS[state.mat].map(m=>`<li class="${state.missions[m.id]?"done":""}"><span class="ck">${state.missions[m.id]?"✓":""}</span><div><div class="mt">${T.missions[m.id][0]}</div><div class="md">${T.missions[m.id][1]}</div></div></li>`).join("");
+}
+function checkMissions(rec){
+  let newDone=null;
+  MISSIONS[state.mat].forEach(m=>{ if(!state.missions[m.id]&&m.test(rec)){ state.missions[m.id]=true; newDone=m.id; } });
+  renderMissions(); toastFor(rec);
+  if(newDone) setTimeout(()=>toast(L().tMission(L().missions[newDone][0])),1900);
+}
+
+// ======================= LANGUAGE =======================
+function renderLegend(){
+  const T=L(), els=[...new Set(MATERIALS[state.mat].basis.flatMap(b=>b.atoms.map(a=>a.el)))];
+  $("legend").innerHTML=els.map(e=>`<span><i style="background:${ELEM[e].color}"></i>${e} · E_d ${ELEM[e].Ed} eV · ${T.legendThr} ≈ ${thresholdKV(e)} kV</span>`).join("")+`<span>${T.legendZ}</span>`;
+}
+function applyLang(){
+  const T=L();
+  document.documentElement.lang=LANG;
+  document.querySelectorAll("[data-i]").forEach(n=>n.textContent=T[n.dataset.i]);
+  document.querySelectorAll("[data-ih]").forEach(n=>n.innerHTML=T[n.dataset.ih]);
+  document.querySelectorAll("#langSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===LANG)));
+  cv.setAttribute("aria-label",T.canvasAria);
+  $("elemHead").innerHTML=`<tr>${T.elemHead.map(h=>`<th>${h}</th>`).join("")}</tr>`;
+  $("elemTable").innerHTML=Object.entries(ELEM).map(([k,d])=>`<tr><td>${k}</td><td>${d.Z}</td><td>${d.Ed}</td><td>${d.TD}</td><td>${d.ref||T.moRef}</td></tr>`).join("");
+  buildSamples(); buildControls();
+  $("sampleTitle").textContent=T.mat[state.mat].name;
+  renderLegend(); renderMissions(); renderLog();
+  if(state.lastResult&&state.lastResult.mat===state.mat) report(state.lastResult); else report(null);
+  update();
+}
+document.querySelectorAll("#langSeg button").forEach(b=>b.addEventListener("click",()=>{
+  LANG=b.dataset.lang; try{ localStorage.setItem("knockon-lang",LANG); }catch(e){}
+  applyLang();
+}));
+
+// ======================= NAVIGATION =======================
+function openLab(key){
+  state.mat=key; state.sites=buildLattice(key); state.probe=null; state.hover=null; haadfBuf=null; state.lastResult=null;
+  $("select").hidden=true; $("lab").hidden=false;
+  $("sampleTitle").textContent=L().mat[key].name;
+  renderLegend(); report(null); renderMissions(); renderLog(); update();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function canvasPos(ev){ const r=cv.getBoundingClientRect(); return {x:(ev.clientX-r.left)/r.width*FOV, y:(ev.clientY-r.top)/r.height*FOV}; }
+cv.addEventListener("click",ev=>{
+  if(state.anim) return;
+  const p=canvasPos(ev), {best,bd}=nearestSite(p);
+  state.probe=(bd<0.7)?{x:state.sites[best].x,y:state.sites[best].y}:p;
+  update();
+});
+cv.addEventListener("mousemove",ev=>{
+  if(state.anim) return;
+  const {best,bd}=nearestSite(canvasPos(ev)), h=bd<0.7?best:null;
+  if(h!==state.hover){ state.hover=h; draw(); }
+});
+cv.addEventListener("mouseleave",()=>{ state.hover=null; draw(); });
+$("fireBtn").addEventListener("click",expose);
+$("backBtn").addEventListener("click",()=>{ $("lab").hidden=true; $("select").hidden=false; });
+$("resetBtn").addEventListener("click",()=>{ state.sites=buildLattice(state.mat); haadfBuf=null; state.lastResult=null; $("result").className="result neutral"; $("result").textContent=L().restored; update(); });
+function setView(v){ state.view=v; $("modeHaadf").setAttribute("aria-pressed",String(v==="haadf")); $("modeBall").setAttribute("aria-pressed",String(v==="ball")); draw(); }
+$("modeHaadf").addEventListener("click",()=>setView("haadf"));
+$("modeBall").addEventListener("click",()=>setView("ball"));
+document.addEventListener("keydown",e=>{ if(!$("lab").hidden&&(e.key===" "||e.key==="Enter")&&document.activeElement===document.body){ e.preventDefault(); expose(); } });
+
+// ======================= RESTART =======================
+let restartArmed=null;
+$("restartBtn").addEventListener("click",()=>{
+  const btn=$("restartBtn");
+  if(!restartArmed){
+    btn.textContent=L().restartConfirm; btn.classList.add("confirm");
+    restartArmed=setTimeout(()=>{ restartArmed=null; btn.classList.remove("confirm"); btn.textContent=L().restart; },3500);
+    return;
+  }
+  clearTimeout(restartArmed); restartArmed=null; btn.classList.remove("confirm");
+  if(state.anim) return;
+  Object.assign(state,{mat:"graphene",sites:[],probe:null,view:"haadf",kV:80,I:50,t:1,alpha:25,log:[],missions:{},hover:null,lastResult:null});
+  haadfBuf=null;
+  $("modeHaadf").setAttribute("aria-pressed","true"); $("modeBall").setAttribute("aria-pressed","false");
+  $("lab").hidden=true; $("select").hidden=false;
+  applyLang();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+makeNoise(); applyLang();
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,24 @@
+# Zenodo lee este archivo al crear el DOI desde GitHub.
+cff-version: 1.2.0
+message: "Si usas Knock-on Lab en clase o en una publicación, por favor cítalo así."
+title: "Knock-on Lab: an educational browser game on electron-beam knock-on damage in 2D materials"
+type: software
+authors:
+  - given-names: "Luis E."
+    family-names: "Piedra Marin"
+    affiliation: "International Iberian Nanotechnology Laboratory (INL), Braga, Portugal"
+    orcid: "https://orcid.org/0000-0001-8598-8529"
+version: "1.0.0"
+date-released: "2026-10-02"
+license: MIT
+url: "https://knockonlab.netlify.app/"
+repository-code: "https://github.com/LuiStone96/knockon-lab"
+keywords:
+  - electron microscopy
+  - STEM
+  - knock-on damage
+  - MoS2
+  - graphene
+  - hBN
+  - science outreach
+  - educational game
