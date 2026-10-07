@@ -8,7 +8,7 @@ authors:
     family-names: "Piedra Marin"
     affiliation: "International Iberian Nanotechnology Laboratory (INL), Braga, Portugal; Instituto Superior Técnico, Universidade de Lisboa, Lisboa, Portugal"
     orcid: "https://orcid.org/0000-0001-8598-8529"
-version: "1.0.0"
+version: "1.0.1"
 doi: "10.5281/zenodo.23105637"
 identifiers:
   - type: doi
@@ -17,7 +17,7 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.23105638"
     description: "Version 1.0.0"
-date-released: "2026-10-02"
+date-released: "2026-10-07"
 license: MIT
 url: "https://knockonlab.netlify.app/"
 repository-code: "https://github.com/LuiStone96/knockon-lab"
