@@ -44,7 +44,7 @@
 </script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="x-disabled" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: instrument console. Field-of-view canvas on the left, beam controls + physics readouts on the right; stacks on phones. Deliberate single dark theme (microscope UI). */
 :root{
@@ -160,14 +160,15 @@ details.model{margin-top:20px;background:var(--panel);border:1px solid var(--lin
 details.model summary{cursor:pointer;font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:15px}
 details.model .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:12px;font-size:14px}
 details.model p{margin:0 0 8px;max-width:68ch}
+sub,sup{font-size:72%;line-height:0;position:relative}
 .eq{font-family:var(--f-mono);font-size:12.5px;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:8px 10px;overflow-x:auto;white-space:pre;margin:4px 0 10px}
 .tbl{overflow-x:auto}
 .tbl table{border-collapse:collapse;font-size:13px;width:100%}
 .tbl th,.tbl td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
 .tbl th{color:var(--muted);font-weight:600}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.legend>span{display:inline-block}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block;vertical-align:-1px;margin-right:5px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .langsel{display:inline-flex;align-items:center;gap:8px}
 .langsel .seg button{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;padding:5px 10px}
@@ -322,19 +323,19 @@ details.model p{margin:0 0 8px;max-width:68ch}
       <div class="cols">
         <div>
           <p data-ih="m1"></p>
-          <div class="eq">E_max = 2E(E + 2m₀c²) / (Mc²)</div>
+          <div class="eq">E<sub>max</sub> = 2E(E + 2m₀c²) / (Mc²)</div>
           <p data-ih="m2"></p>
-          <div class="eq">E_max(v) ≈ E_max + 2·(pc)·(v/c),  pc = √(E(E+2m₀c²))</div>
+          <div class="eq">E<sub>max</sub>(v) ≈ E<sub>max</sub> + 2·(pc)·(v/c),  pc = √(E(E+2m₀c²))</div>
           <p data-ih="m3"></p>
         </div>
         <div>
           <p data-ih="m4"></p>
-          <div class="eq">σ = 4πa₀²Z²(E_R/m₀c²)²·(1−β²)/β⁴ ·
-    [ (x−1) − β² ln x + πZαβ(2√x − ln x − 2) ],  x = T_m/E_d</div>
+          <div class="eq">σ = 4πa₀²Z²(E<sub>R</sub>/m₀c²)²·(1−β²)/β⁴ ·
+    [ (x−1) − β² ln x + πZαβ(2√x − ln x − 2) ],  x = T<sub>m</sub>/E<sub>d</sub></div>
           <p data-ih="m5"></p>
-          <div class="eq">D(r) = (I·t/e)·(4 ln2 / πw²)·exp(−4 ln2 r²/w²)
-P = 1 − exp(−σ·D)
-P(S₂ → 0) = 1 − e^(−σD)(1 + σD)</div>
+          <div class="eq">D(r) = (I·t/e)·p<sub>Airy</sub>(r)
+P = 1 − e<sup>−σD</sup>
+P(S₂ → 0) = 1 − e<sup>−σD</sup>(1 + σD)</div>
         </div>
         <div>
           <div class="tbl"><table>
@@ -355,7 +356,7 @@ P(S₂ → 0) = 1 − e^(−σD)(1 + σD)</div>
 const STR = {
 es:{
   restart:"Reiniciar juego", restartConfirm:"¿Seguro? Pulsa otra vez", restarted:"Juego reiniciado.", sub:"Simulador de sputtering por haz en STEM · grafeno · hBN · MoS₂", langLabel:"Idioma",
-  intro:"Elige una muestra 2D. En el microscopio podrás <b>colocar la sonda sobre un átomo</b>, escoger <b>voltaje, corriente, tiempo de exposición y ángulo de convergencia</b> y disparar el haz. La expulsión del átomo se decide con el modelo de desplazamiento por impacto elástico (knock-on) de McKinley–Feshbach, incluyendo las vibraciones de punto cero de la red.",
+  intro:"Elige una muestra 2D. En el microscopio podrás <b>colocar la sonda sobre un átomo</b>, escoger <b>voltaje, corriente, tiempo de exposición y ángulo de convergencia</b> y disparar el haz. La expulsión del átomo se decide con el modelo de desplazamiento por impacto elástico (knock-on) de McKinley–Feshbach, incluyendo las vibraciones de punto cero de la red, más un canal de excitación electrónica que baja el umbral de desplazamiento de los átomos bajo la sonda.",
   back:"← Cambiar muestra", model:"Modelo", reset:"Restaurar red", canvasAria:"Red atómica. Haz clic para colocar la sonda.",
   targetLabel:"Objetivo de la sonda", physLabel:"Física del objetivo", emaxTransf:"E<sub>max</sub> transferida", thrTitle:"Umbral de desplazamiento E_d",
   pTxt:"Probabilidad de expulsar el átomo objetivo en esta exposición", fire:"Exponer haz",
@@ -365,33 +366,33 @@ es:{
   modelSummary:"Modelo físico y supuestos",
   m1:"<b>Energía máxima transferida</b> a un núcleo en reposo por un electrón de energía E (colisión frontal, relativista):",
   m2:"Si el átomo vibra con velocidad v a lo largo del haz, la transferencia cambia linealmente (Meyer et al. 2012):",
-  m3:"v sigue una gaussiana con ½M⟨v²⟩ = ½⟨E_fonón⟩, calculada con un modelo de Debye a 300 K (incluye energía de punto cero).",
-  m4:"<b>Sección eficaz</b> de McKinley–Feshbach para T_m &gt; E_d, promediada sobre la distribución de v:",
-  m5:"<b>Sonda</b>: perfil gaussiano con FWHM² = (0.51λ/α)² + d_fuente² + d_Cc², con d_fuente = 0.5 Å y d_Cc = 0.2·C_c·(ΔE/E)·α, C_c = 1.2 mm, ΔE = 0.8 eV (estimación, sin corrector de cromática). En una columna S₂ las dos expulsiones son secuenciales (proceso de Poisson).",
-  m6:"Solo se modela el knock-on. No se incluyen ionización/radiólisis (relevantes en hBN y MoS₂), grabado químico, ni la reducción de E_d en átomos vecinos a una vacancia. En MoS₂ primero sale el S de la cara de salida del haz; mientras está, el S superior es empujado hacia la red. Una vez creada la vacancia inferior, el S superior tiene la columna libre y se trata con el mismo E_d. Los θ_D son valores efectivos aproximados. El perfil gaussiano subestima las colas del disco de Airy.",
-  elemHead:["Átomo","Z","E_d (eV)","θ_D (K)","Fuente E_d"], moRef:"estimación (≫ E_max a 300 kV)",
+  m3:"v sigue una gaussiana con ½M⟨v²⟩ = ½⟨E<sub>fonón</sub>⟩, calculada con un modelo de Debye a 300 K (incluye energía de punto cero).",
+  m4:"<b>Sección eficaz</b> de McKinley–Feshbach para T<sub>m</sub> &gt; E<sub>d</sub>, promediada sobre la distribución de v:",
+  m5:"<b>Sonda</b>: el juego usa dos descripciones de la misma sonda, cada una para una cosa. <i>Dosis</i>: perfil de óptica de ondas de una apertura de semiángulo α sin aberraciones (disco de Airy con sus anillos), promediado sobre la dispersión focal cromática (C<sub>c</sub> = 1.2 mm, ΔE = 0.8 eV) y convolucionado con una fuente de 0.5 Å; coincide con la sonda abTEM del artículo en unos pocos %. Su pico central fija la dosis sobre el átomo apuntado y sus colas la dosis sobre todos los átomos a menos de 10 Å, mucho mayor que la que daría una gaussiana. <i>Imagen</i>: la imagen HAADF se dibuja con una gaussiana de FWHM² = (0.51λ/α)² + (0.5 Å)² + (0.2·C<sub>c</sub>·ΔE/E·α)², que no interviene en la dosis. En una columna S₂ los dos S salen uno tras otro (proceso de Poisson).",
+  m6:"<b>Excitación electrónica</b>: el electrón de la sonda puede ionizar o excitar el átomo por el que pasa, con probabilidad P(E) que sigue la sección de Bethe (Kretschmer et al. 2020; Speckmann et al. 2023; Bui et al. 2023). Mientras dura la excitación, el umbral baja a E<sub>d</sub><sup>*</sup> y el siguiente choque elástico lo expulsa con más facilidad: σ = (1−ΣP<sub>i</sub>)·σ(E<sub>d</sub>) + ΣP<sub>i</sub>·σ(E<sub>d</sub><sup>*</sup>,i). Como la excitación la crean los mismos electrones, sigue el perfil de la sonda: el haz parqueado facilita expulsar los átomos que tiene debajo y cerca. P y E<sub>d</sub><sup>*</sup> están ajustados a secciones eficaces medidas en hBN y MoS₂; en grafeno las excitaciones se apagan en femtosegundos y no hay canal de excitación. No se incluyen el grabado químico ni el E<sub>d</sub> menor de átomos junto a una vacancia. En MoS₂ sale primero el S de la superficie de salida; mientras está, el S superior es empujado hacia la red. Los valores de θ<sub>D</sub> son efectivos y aproximados. Las aberraciones residuales de un microscopio real añadirían aún más cola.",
+  elemHead:["Átomo","Z","E<sub>d</sub> (eV)","θ<sub>D</sub> (K)","Fuente E<sub>d</sub>"], moRef:"estimación (≫ E<sub>max</sub> a 300 kV)",
   ctrl:{kV:"Voltaje de aceleración",I:"Corriente de sonda",t:"Tiempo de exposición (spot)",alpha:"Semiángulo de convergencia"}, hintKV:"Themis 60–300 kV",
   hudFov:"FOV", hudProbe:"sonda FWHM",
   noProbe:"Sin sonda. Haz clic en la imagen.", between:"Entre átomos", betweenSub:"solo dosis de cola sobre vecinos",
   vacancy:"Vacancia", vacancySub:"La columna ya está vacía", column:n=>`columna ${n}×S`,
   sExit:"S de la cara de salida", sEntry:"S de entrada (protegido mientras exista el S inferior)", sLast:"S restante: la columna está libre por debajo", inSpot:"átomo en spot",
-  ro:["Electrones totales","Dosis en el objetivo","σ knock-on (300 K)","Umbral (v=0) en kV","Daño colateral esperado","Tasa de dosis"], atoms:"átomos",
-  legendThr:"umbral", legendZ:"Intensidad HAADF ∝ Z^1.7",
+  ro:["Electrones totales","Dosis en el objetivo","σ total (300 K)","Umbral (v=0) en kV","Daño colateral esperado","Tasa de dosis"], atoms:"átomos",
+  legendThr:"umbral", legendZ:"Intensidad HAADF ∝ Z<sup>1.7</sup>",
   notOnAtom:"La sonda no estaba sobre un átomo.", onVac:"La sonda está sobre una vacancia: la columna ya está vacía.", tail:n=>`Aun así la cola del haz expulsó ${n} átomo(s).`, nothing:"No se expulsó nada.",
   sEntryNo:"<b>Sin efecto sobre el S de entrada.</b> Mientras exista el S inferior, el impulso empuja este S hacia la capa de Mo, no fuera del cristal. Expulsa primero el S de salida.",
   cantEject:"<b>No se puede expulsar.</b>",
-  ejected:(el,Em,Ed,sig,D,P)=>`<b>¡${el} expulsado!</b> E_max = ${Em} eV frente a E_d = ${Ed} eV, σ = ${sig}, dosis ${D} e⁻/Å² → P = ${P}.`,
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>¡${el} expulsado!</b> E<sub>max</sub> = ${Em} eV frente a E<sub>d</sub> = ${Ed} eV, σ = ${sig}, dosis ${D} e⁻/Å² → P = ${P}.`,
   colEmpty2:" <b>Columna S₂ vacía:</b> divacancia de S.", colEmpty:" <b>Columna S₂ vacía:</b> también salió el segundo S.", lastS:" Queda 1 S en la columna: ahora también puede expulsarse.",
   collat:n=>` <span style="color:var(--bad)">Daño colateral: ${n} átomo(s) vecino(s). Prueba una sonda más fina (α mayor) o menos dosis.</span>`,
-  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E_max = ${Em} eV es muy inferior a E_d = ${Ed} eV; ni las vibraciones de punto cero alcanzan el umbral, así que σ = 0. `,
-  moNever:"El Mo no puede expulsarse con ningún voltaje del Themis.", raiseKV:"Sube el voltaje.",
+  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E<sub>max</sub> = ${Em} eV es muy inferior a E<sub>d</sub> = ${Ed} eV; ni las vibraciones de punto cero alcanzan el umbral, así que σ = 0. `,
+  excNote:" <i>E<sub>max</sub> está por debajo de E<sub>d</sub>: la sonda excitó electrónicamente el átomo y le bajó el umbral, por eso pudo salir.</i>", moNever:"El Mo no puede expulsarse con ningún voltaje del Themis.", raiseKV:"Sube el voltaje.",
   intactLow:(el,sig,D,P)=>`<b>${el} intacto.</b> σ = ${sig} con ${D} e⁻/Å² da solo P = ${P}. Aumenta el voltaje o la dosis (corriente × tiempo).`,
   survived:(el,P)=>`<b>${el} sobrevivió esta vez.</b> P era ${P}: el sputtering es estocástico. Vuelve a exponer o sube la dosis.`,
   butNb:n=>` <span style="color:var(--bad)">Pero se expulsaron ${n} vecino(s).</span>`,
   tEjected:el=>`${el} expulsado`, tN:n=>`${n} átomo(s) expulsado(s)`, tNone:"Sin expulsión", tMission:m=>`Reto completado: ${m}`,
   mat:{
-    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocapa de carbono en red de panal. Muy estable a 80 kV: con E_d ≈ 21 eV el umbral estático ronda los 105 kV, y las vibraciones lo adelantan un poco."},
-    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitruro de boro hexagonal. El boro, más ligero, se expulsa antes que el nitrógeno: sputtering selectivo."},
+    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocapa de carbono en red de panal. Muy estable a 80 kV: con E<sub>d</sub> ≈ 21 eV el umbral estático ronda los 105 kV, y las vibraciones lo adelantan un poco."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitruro de boro hexagonal. Entre 100 y 120 kV el boro, más ligero, se expulsa unas 4–10 veces más fácil que el nitrógeno. Por debajo de 90 kV ambos se pierden por excitación electrónica a un ritmo parecido."},
     mos2:{name:"MoS₂",bond:"Mo–S proy. 1.82 Å",blurb:"Monocapa 2H vista en [001]: columnas de Mo y columnas de 2 S superpuestos. Puedes vaciar una columna S₂ átomo por átomo."},
   },
   missions:{
@@ -409,7 +410,7 @@ es:{
 },
 en:{
   restart:"Restart game", restartConfirm:"Sure? Click again", restarted:"Game restarted.", sub:"STEM beam-sputtering simulator · graphene · hBN · MoS₂", langLabel:"Language",
-  intro:"Pick a 2D sample. At the microscope you can <b>park the probe on an atom</b>, choose <b>accelerating voltage, current, exposure time and convergence angle</b>, and fire the beam. Whether the atom is ejected is decided by the McKinley–Feshbach elastic knock-on displacement model, including the zero-point vibrations of the lattice.",
+  intro:"Pick a 2D sample. At the microscope you can <b>park the probe on an atom</b>, choose <b>accelerating voltage, current, exposure time and convergence angle</b>, and fire the beam. Whether the atom is ejected is decided by the McKinley–Feshbach elastic knock-on displacement model, including the zero-point vibrations of the lattice, plus an electronic-excitation channel that lowers the displacement threshold of the atoms under the probe.",
   back:"← Change sample", model:"Model", reset:"Restore lattice", canvasAria:"Atomic lattice. Click to place the probe.",
   targetLabel:"Probe target", physLabel:"Target physics", emaxTransf:"Transferred E<sub>max</sub>", thrTitle:"Displacement threshold E_d",
   pTxt:"Probability of ejecting the target atom in this exposure", fire:"Fire beam",
@@ -419,33 +420,33 @@ en:{
   modelSummary:"Physical model and assumptions",
   m1:"<b>Maximum energy transferred</b> to a nucleus at rest by an electron of energy E (head-on, relativistic):",
   m2:"If the atom vibrates with velocity v along the beam, the transfer changes linearly (Meyer et al. 2012):",
-  m3:"v follows a Gaussian with ½M⟨v²⟩ = ½⟨E_phonon⟩, computed from a Debye model at 300 K (zero-point energy included).",
-  m4:"McKinley–Feshbach <b>cross section</b> for T_m &gt; E_d, averaged over the v distribution:",
-  m5:"<b>Probe</b>: Gaussian profile with FWHM² = (0.51λ/α)² + d_source² + d_Cc², with d_source = 0.5 Å and d_Cc = 0.2·C_c·(ΔE/E)·α, C_c = 1.2 mm, ΔE = 0.8 eV (estimate, no chromatic corrector). In an S₂ column the two ejections are sequential (Poisson process).",
-  m6:"Only knock-on is modelled. Ionisation/radiolysis (relevant in hBN and MoS₂), chemical etching and the lower E_d of atoms next to a vacancy are not included. In MoS₂ the S on the beam-exit surface goes first; while it is there, the top S is pushed into the lattice. Once the bottom vacancy exists, the top S has a free column and is treated with the same E_d. θ_D values are approximate effective values. The Gaussian profile underestimates the Airy-disc tails.",
-  elemHead:["Atom","Z","E_d (eV)","θ_D (K)","E_d source"], moRef:"estimate (≫ E_max at 300 kV)",
+  m3:"v follows a Gaussian with ½M⟨v²⟩ = ½⟨E<sub>phonon</sub>⟩, computed from a Debye model at 300 K (zero-point energy included).",
+  m4:"McKinley–Feshbach <b>cross section</b> for T<sub>m</sub> &gt; E<sub>d</sub>, averaged over the v distribution:",
+  m5:"<b>Probe</b>: the game uses two descriptions of the same probe, each for one job. <i>Dose</i>: wave-optical profile of an aberration-free aperture of semi-angle α (Airy disc with its rings), averaged over the chromatic focal spread (C<sub>c</sub> = 1.2 mm, ΔE = 0.8 eV) and convolved with a 0.5 Å source; it agrees with the abTEM probe of the paper to within a few %. Its central peak sets the dose on the targeted atom and its tails the dose on every atom within 10 Å, far more than a Gaussian would give them. <i>Image</i>: the HAADF image is drawn with a Gaussian of FWHM² = (0.51λ/α)² + (0.5 Å)² + (0.2·C<sub>c</sub>·ΔE/E·α)², which plays no part in the dose. In an S₂ column the two S atoms leave one after the other (Poisson process).",
+  m6:"<b>Electronic excitation</b>: the probe electron can ionise or excite the atom it passes, with a probability P(E) that follows the Bethe cross section (Kretschmer et al. 2020; Speckmann et al. 2023; Bui et al. 2023). While the excitation lasts, the threshold drops to E<sub>d</sub><sup>*</sup> and the next elastic collision ejects the atom more easily: σ = (1−ΣP<sub>i</sub>)·σ(E<sub>d</sub>) + ΣP<sub>i</sub>·σ(E<sub>d</sub><sup>*</sup>,i). The excitation is made by the same electrons, so it follows the probe profile: a parked beam makes it easier to eject the atoms under and near it. P and E<sub>d</sub><sup>*</sup> are fitted to measured cross sections of hBN and MoS₂; in graphene excitations decay within femtoseconds and there is no excitation channel. Chemical etching and the lower E<sub>d</sub> of atoms next to a vacancy are not included. In MoS₂ the S on the beam-exit surface goes first; while it is there, the top S is pushed into the lattice. θ<sub>D</sub> values are approximate effective values. Residual aberrations of a real microscope would add even more tail.",
+  elemHead:["Atom","Z","E<sub>d</sub> (eV)","θ<sub>D</sub> (K)","E<sub>d</sub> source"], moRef:"estimate (≫ E<sub>max</sub> at 300 kV)",
   ctrl:{kV:"Accelerating voltage",I:"Probe current",t:"Exposure time (spot)",alpha:"Convergence semi-angle"}, hintKV:"Themis 60–300 kV",
   hudFov:"FOV", hudProbe:"probe FWHM",
   noProbe:"No probe. Click the image.", between:"Between atoms", betweenSub:"only tail dose on neighbours",
   vacancy:"Vacancy", vacancySub:"The column is already empty", column:n=>`column ${n}×S`,
   sExit:"S on the exit surface", sEntry:"Entrance S (shielded while the bottom S is present)", sLast:"Remaining S: the column is open below", inSpot:"atom in spot",
-  ro:["Total electrons","Dose on target","Knock-on σ (300 K)","Threshold (v=0) in kV","Expected collateral damage","Dose rate"], atoms:"atoms",
-  legendThr:"threshold", legendZ:"HAADF intensity ∝ Z^1.7",
+  ro:["Total electrons","Dose on target","Total σ (300 K)","Threshold (v=0) in kV","Expected collateral damage","Dose rate"], atoms:"atoms",
+  legendThr:"threshold", legendZ:"HAADF intensity ∝ Z<sup>1.7</sup>",
   notOnAtom:"The probe was not on an atom.", onVac:"The probe is on a vacancy: the column is already empty.", tail:n=>`Even so, the beam tail ejected ${n} atom(s).`, nothing:"Nothing was ejected.",
   sEntryNo:"<b>No effect on the entrance S.</b> While the bottom S is present, the momentum pushes this S towards the Mo layer, not out of the crystal. Eject the exit-surface S first.",
   cantEject:"<b>Cannot be ejected.</b>",
-  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejected!</b> E_max = ${Em} eV vs E_d = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejected!</b> E<sub>max</sub> = ${Em} eV vs E<sub>d</sub> = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
   colEmpty2:" <b>S₂ column emptied:</b> S divacancy.", colEmpty:" <b>S₂ column emptied:</b> the second S left too.", lastS:" 1 S remains in the column: it can now be ejected too.",
   collat:n=>` <span style="color:var(--bad)">Collateral damage: ${n} neighbouring atom(s). Try a finer probe (larger α) or less dose.</span>`,
-  intactZero:(el,Em,Ed)=>`<b>${el} intact.</b> E_max = ${Em} eV is far below E_d = ${Ed} eV; not even zero-point vibrations reach the threshold, so σ = 0. `,
-  moNever:"Mo cannot be ejected at any Themis voltage.", raiseKV:"Raise the voltage.",
+  intactZero:(el,Em,Ed)=>`<b>${el} intact.</b> E<sub>max</sub> = ${Em} eV is far below E<sub>d</sub> = ${Ed} eV; not even zero-point vibrations reach the threshold, so σ = 0. `,
+  excNote:" <i>E<sub>max</sub> is below E<sub>d</sub>: the probe electronically excited the atom and lowered its threshold, so it could still leave.</i>", moNever:"Mo cannot be ejected at any Themis voltage.", raiseKV:"Raise the voltage.",
   intactLow:(el,sig,D,P)=>`<b>${el} intact.</b> σ = ${sig} with ${D} e⁻/Å² gives only P = ${P}. Increase the voltage or the dose (current × time).`,
   survived:(el,P)=>`<b>${el} survived this time.</b> P was ${P}: sputtering is stochastic. Expose again or raise the dose.`,
   butNb:n=>` <span style="color:var(--bad)">But ${n} neighbour(s) were ejected.</span>`,
   tEjected:el=>`${el} ejected`, tN:n=>`${n} atom(s) ejected`, tNone:"No ejection", tMission:m=>`Challenge completed: ${m}`,
   mat:{
-    graphene:{name:"Graphene",bond:"C–C 1.42 Å",blurb:"Single carbon layer on a honeycomb lattice. Very stable at 80 kV: with E_d ≈ 21 eV the static threshold is around 105 kV, and vibrations bring it down a little."},
-    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Hexagonal boron nitride. The lighter boron is ejected before nitrogen: selective sputtering."},
+    graphene:{name:"Graphene",bond:"C–C 1.42 Å",blurb:"Single carbon layer on a honeycomb lattice. Very stable at 80 kV: with E<sub>d</sub> ≈ 21 eV the static threshold is around 105 kV, and vibrations bring it down a little."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Hexagonal boron nitride. Between 100 and 120 kV the lighter boron is ejected about 4–10 times more easily than nitrogen. Below 90 kV both are lost through electronic excitation at a similar rate."},
     mos2:{name:"MoS₂",bond:"Mo–S proj. 1.82 Å",blurb:"2H monolayer viewed along [001]: Mo columns and columns of 2 overlapping S. You can empty an S₂ column atom by atom."},
   },
   missions:{
@@ -463,7 +464,7 @@ en:{
 },
 pt:{
   restart:"Reiniciar jogo", restartConfirm:"Tens a certeza? Clica outra vez", restarted:"Jogo reiniciado.", sub:"Simulador de sputtering por feixe em STEM · grafeno · hBN · MoS₂", langLabel:"Idioma",
-  intro:"Escolhe uma amostra 2D. No microscópio podes <b>colocar a sonda sobre um átomo</b>, escolher <b>tensão, corrente, tempo de exposição e ângulo de convergência</b> e disparar o feixe. A ejeção do átomo é decidida pelo modelo de deslocamento por impacto elástico (knock-on) de McKinley–Feshbach, incluindo as vibrações de ponto zero da rede.",
+  intro:"Escolhe uma amostra 2D. No microscópio podes <b>colocar a sonda sobre um átomo</b>, escolher <b>tensão, corrente, tempo de exposição e ângulo de convergência</b> e disparar o feixe. A ejeção do átomo é decidida pelo modelo de deslocamento por impacto elástico (knock-on) de McKinley–Feshbach, incluindo as vibrações de ponto zero da rede, mais um canal de excitação eletrónica que baixa o limiar de deslocamento dos átomos sob a sonda.",
   back:"← Mudar amostra", model:"Modelo", reset:"Restaurar rede", canvasAria:"Rede atómica. Clica para colocar a sonda.",
   targetLabel:"Alvo da sonda", physLabel:"Física do alvo", emaxTransf:"E<sub>max</sub> transferida", thrTitle:"Limiar de deslocamento E_d",
   pTxt:"Probabilidade de ejetar o átomo alvo nesta exposição", fire:"Expor feixe",
@@ -473,33 +474,33 @@ pt:{
   modelSummary:"Modelo físico e pressupostos",
   m1:"<b>Energia máxima transferida</b> a um núcleo em repouso por um eletrão de energia E (colisão frontal, relativista):",
   m2:"Se o átomo vibra com velocidade v ao longo do feixe, a transferência varia linearmente (Meyer et al. 2012):",
-  m3:"v segue uma gaussiana com ½M⟨v²⟩ = ½⟨E_fonão⟩, calculada com um modelo de Debye a 300 K (inclui energia de ponto zero).",
-  m4:"<b>Secção eficaz</b> de McKinley–Feshbach para T_m &gt; E_d, média sobre a distribuição de v:",
-  m5:"<b>Sonda</b>: perfil gaussiano com FWHM² = (0.51λ/α)² + d_fonte² + d_Cc², com d_fonte = 0.5 Å e d_Cc = 0.2·C_c·(ΔE/E)·α, C_c = 1.2 mm, ΔE = 0.8 eV (estimativa, sem corretor cromático). Numa coluna S₂ as duas ejeções são sequenciais (processo de Poisson).",
-  m6:"Só se modela o knock-on. Não se incluem ionização/radiólise (relevantes em hBN e MoS₂), gravação química, nem a redução de E_d em átomos vizinhos de uma lacuna. No MoS₂ sai primeiro o S da face de saída do feixe; enquanto lá estiver, o S superior é empurrado para a rede. Criada a lacuna inferior, o S superior tem a coluna livre e é tratado com o mesmo E_d. Os θ_D são valores efetivos aproximados. O perfil gaussiano subestima as caudas do disco de Airy.",
-  elemHead:["Átomo","Z","E_d (eV)","θ_D (K)","Fonte E_d"], moRef:"estimativa (≫ E_max a 300 kV)",
+  m3:"v segue uma gaussiana com ½M⟨v²⟩ = ½⟨E<sub>fonão</sub>⟩, calculada com um modelo de Debye a 300 K (inclui energia de ponto zero).",
+  m4:"<b>Secção eficaz</b> de McKinley–Feshbach para T<sub>m</sub> &gt; E<sub>d</sub>, média sobre a distribuição de v:",
+  m5:"<b>Sonda</b>: o jogo usa duas descrições da mesma sonda, cada uma para uma coisa. <i>Dose</i>: perfil de ótica ondulatória de uma abertura de semiângulo α sem aberrações (disco de Airy com os seus anéis), média sobre a dispersão focal cromática (C<sub>c</sub> = 1.2 mm, ΔE = 0.8 eV) e convoluída com uma fonte de 0.5 Å; coincide com a sonda abTEM do artigo em poucos %. O seu pico central fixa a dose no átomo visado e as suas caudas a dose em todos os átomos a menos de 10 Å, muito maior do que daria uma gaussiana. <i>Imagem</i>: a imagem HAADF é desenhada com uma gaussiana de FWHM² = (0.51λ/α)² + (0.5 Å)² + (0.2·C<sub>c</sub>·ΔE/E·α)², que não entra na dose. Numa coluna S₂ os dois S saem um a seguir ao outro (processo de Poisson).",
+  m6:"<b>Excitação eletrónica</b>: o eletrão da sonda pode ionizar ou excitar o átomo por onde passa, com probabilidade P(E) que segue a secção de Bethe (Kretschmer et al. 2020; Speckmann et al. 2023; Bui et al. 2023). Enquanto dura a excitação, o limiar desce para E<sub>d</sub><sup>*</sup> e a colisão elástica seguinte ejeta o átomo com mais facilidade: σ = (1−ΣP<sub>i</sub>)·σ(E<sub>d</sub>) + ΣP<sub>i</sub>·σ(E<sub>d</sub><sup>*</sup>,i). A excitação é criada pelos mesmos eletrões, por isso segue o perfil da sonda: o feixe estacionado facilita a ejeção dos átomos por baixo e perto dele. P e E<sub>d</sub><sup>*</sup> estão ajustados a secções eficazes medidas em hBN e MoS₂; no grafeno as excitações desaparecem em femtossegundos e não há canal de excitação. Não se incluem a gravação química nem o E<sub>d</sub> menor de átomos junto a uma lacuna. No MoS₂ sai primeiro o S da superfície de saída; enquanto lá está, o S superior é empurrado para a rede. Os valores de θ<sub>D</sub> são efetivos e aproximados. As aberrações residuais de um microscópio real acrescentariam ainda mais cauda.",
+  elemHead:["Átomo","Z","E<sub>d</sub> (eV)","θ<sub>D</sub> (K)","Fonte E<sub>d</sub>"], moRef:"estimativa (≫ E<sub>max</sub> a 300 kV)",
   ctrl:{kV:"Tensão de aceleração",I:"Corrente da sonda",t:"Tempo de exposição (spot)",alpha:"Semiângulo de convergência"}, hintKV:"Themis 60–300 kV",
   hudFov:"FOV", hudProbe:"sonda FWHM",
   noProbe:"Sem sonda. Clica na imagem.", between:"Entre átomos", betweenSub:"apenas dose de cauda nos vizinhos",
   vacancy:"Lacuna", vacancySub:"A coluna já está vazia", column:n=>`coluna ${n}×S`,
   sExit:"S da face de saída", sEntry:"S de entrada (protegido enquanto existir o S inferior)", sLast:"S restante: a coluna está livre por baixo", inSpot:"átomo em spot",
-  ro:["Eletrões totais","Dose no alvo","σ knock-on (300 K)","Limiar (v=0) em kV","Dano colateral esperado","Taxa de dose"], atoms:"átomos",
-  legendThr:"limiar", legendZ:"Intensidade HAADF ∝ Z^1.7",
+  ro:["Eletrões totais","Dose no alvo","σ total (300 K)","Limiar (v=0) em kV","Dano colateral esperado","Taxa de dose"], atoms:"átomos",
+  legendThr:"limiar", legendZ:"Intensidade HAADF ∝ Z<sup>1.7</sup>",
   notOnAtom:"A sonda não estava sobre um átomo.", onVac:"A sonda está sobre uma lacuna: a coluna já está vazia.", tail:n=>`Mesmo assim, a cauda do feixe ejetou ${n} átomo(s).`, nothing:"Nada foi ejetado.",
   sEntryNo:"<b>Sem efeito no S de entrada.</b> Enquanto existir o S inferior, o impulso empurra este S para a camada de Mo, não para fora do cristal. Ejeta primeiro o S da face de saída.",
   cantEject:"<b>Não pode ser ejetado.</b>",
-  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejetado!</b> E_max = ${Em} eV face a E_d = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejetado!</b> E<sub>max</sub> = ${Em} eV face a E<sub>d</sub> = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
   colEmpty2:" <b>Coluna S₂ vazia:</b> dilacuna de S.", colEmpty:" <b>Coluna S₂ vazia:</b> o segundo S também saiu.", lastS:" Resta 1 S na coluna: agora também pode ser ejetado.",
   collat:n=>` <span style="color:var(--bad)">Dano colateral: ${n} átomo(s) vizinho(s). Experimenta uma sonda mais fina (α maior) ou menos dose.</span>`,
-  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E_max = ${Em} eV é muito inferior a E_d = ${Ed} eV; nem as vibrações de ponto zero atingem o limiar, por isso σ = 0. `,
-  moNever:"O Mo não pode ser ejetado com nenhuma tensão do Themis.", raiseKV:"Aumenta a tensão.",
+  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E<sub>max</sub> = ${Em} eV é muito inferior a E<sub>d</sub> = ${Ed} eV; nem as vibrações de ponto zero atingem o limiar, por isso σ = 0. `,
+  excNote:" <i>E<sub>max</sub> está abaixo de E<sub>d</sub>: a sonda excitou eletronicamente o átomo e baixou o seu limiar, por isso pôde sair.</i>", moNever:"O Mo não pode ser ejetado com nenhuma tensão do Themis.", raiseKV:"Aumenta a tensão.",
   intactLow:(el,sig,D,P)=>`<b>${el} intacto.</b> σ = ${sig} com ${D} e⁻/Å² dá apenas P = ${P}. Aumenta a tensão ou a dose (corrente × tempo).`,
   survived:(el,P)=>`<b>${el} sobreviveu desta vez.</b> P era ${P}: o sputtering é estocástico. Volta a expor ou aumenta a dose.`,
   butNb:n=>` <span style="color:var(--bad)">Mas foram ejetados ${n} vizinho(s).</span>`,
   tEjected:el=>`${el} ejetado`, tN:n=>`${n} átomo(s) ejetado(s)`, tNone:"Sem ejeção", tMission:m=>`Desafio concluído: ${m}`,
   mat:{
-    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocamada de carbono numa rede em favo de mel. Muito estável a 80 kV: com E_d ≈ 21 eV o limiar estático ronda os 105 kV, e as vibrações antecipam-no um pouco."},
-    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitreto de boro hexagonal. O boro, mais leve, é ejetado antes do azoto: sputtering seletivo."},
+    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocamada de carbono numa rede em favo de mel. Muito estável a 80 kV: com E<sub>d</sub> ≈ 21 eV o limiar estático ronda os 105 kV, e as vibrações antecipam-no um pouco."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitreto de boro hexagonal. Entre 100 e 120 kV o boro, mais leve, é ejetado cerca de 4–10 vezes mais facilmente do que o azoto. Abaixo de 90 kV ambos se perdem por excitação eletrónica a um ritmo semelhante."},
     mos2:{name:"MoS₂",bond:"Mo–S proj. 1.82 Å",blurb:"Monocamada 2H vista em [001]: colunas de Mo e colunas de 2 S sobrepostos. Podes esvaziar uma coluna S₂ átomo a átomo."},
   },
   missions:{
@@ -530,10 +531,10 @@ const T_ROOM = 300;
 
 const ELEM = {
   C:  {Z:6,  A:12.011, Ed:21.14, TD:1035, color:"#a7b0bb", ref:"Susi et al., Nat. Commun. 7, 13040 (2016)"},
-  B:  {Z:5,  A:10.81,  Ed:19.36, TD:1200, color:"#f2a7b8", ref:"Kotakoski et al., PRB 82, 113404 (2010)"},
+  B:  {Z:5,  A:10.81,  Ed:21.5,  TD:1200, color:"#f2a7b8", ref:"Bui et al., Small 19, 2301926 (2023)"},
   N:  {Z:7,  A:14.007, Ed:23.06, TD:1200, color:"#7d96ff", ref:"Kotakoski et al., PRB 82, 113404 (2010)"},
   Mo: {Z:42, A:95.95,  Ed:20.0,  TD:450,  color:"#53c4b3", ref:null},
-  S:  {Z:16, A:32.06,  Ed:6.9,   TD:600,  color:"#e9d45c", ref:"Komsa et al., PRL 109, 035503 (2012)"},
+  S:  {Z:16, A:32.06,  Ed:6.63,  TD:600,  color:"#e9d45c", ref:"fitted to Speckmann et al. 2023 and Kretschmer et al. 2020"},
 };
 
 // ======================= SAMPLES =======================
@@ -563,22 +564,82 @@ function debyeKinetic(TD,T=T_ROOM){
   for(let i=1;i<=n;i++){ const w=i/n, e=KB*TD*w, occ=1/Math.expm1(e/(KB*T)); s+=(i===n?0.5:1)*e*(0.5+occ)*w*w; }
   return zpCache[key]=3*s/n;
 }
-const sigCache={};
-function sigmaEff(el,kV){
-  const key=el+"_"+kV; if(key in sigCache) return sigCache[key];
+// Knock-on cross section for a given threshold Ed, averaged over thermal + zero-point vibrations
+function sigmaKO(el,kV,Ed){
   const d=ELEM[el], E=kV*1e3, E0=Emax0(E,d.A), pc=pcOf(E);
   const sv=Math.sqrt(debyeKinetic(d.TD)/(d.A*AMU));
   let num=0,den=0;
-  for(let i=-200;i<=200;i++){ const u=i/40, w=Math.exp(-0.5*u*u); num+=w*mcKinley(E,d.Z,d.Ed,E0+2*pc*u*sv); den+=w; }
-  return sigCache[key]=num/den;
+  for(let i=-200;i<=200;i++){ const u=i/40, w=Math.exp(-0.5*u*u); num+=w*mcKinley(E,d.Z,Ed,E0+2*pc*u*sv); den+=w; }
+  return num/den;
 }
+// Electronic-excitation channel (same as the paper): the probe electron excites the atom it passes with
+// probability P_i(E) = kappa_i * S(E)/S(60 keV) (relativistic Bethe valence-ionization shape); while excited,
+// the displacement threshold drops to Ed_i and the next knock-on collision ejects it more easily.
+// The excitation is made by the same electrons, so it follows the probe dose profile D(r).
+const E_ION={S:10.36,B:8.298,N:14.534,C:11.260,Mo:7.09};
+const EXC={"B": {"Ed_gs": 21.5, "states": [{"Ed": 6.528, "kappa": 0.0002915}, {"Ed": 17.145, "kappa": 0.04315}]}, "N": {"Ed_gs": 23.06, "states": [{"Ed": 7.142, "kappa": 0.0002782}, {"Ed": 13.952, "kappa": 0.03778}]}, "S": {"Ed_gs": 6.63, "states": [{"Ed": 1.332, "kappa": 0.002449}]}};
+function betheShape(E,el){ const g=1+E/ME, b2=1-1/(g*g), Eb=0.5*ME*b2; return (Math.log(0.938*Eb/E_ION[el])-Math.log(1-b2)-b2)/Eb; }
+function pExc(el,kV,kappa){ return kappa*betheShape(kV*1e3,el)/betheShape(60e3,el); }
+const sigCache={};
+function sigmaEff(el,kV){
+  const key=el+"_"+kV; if(key in sigCache) return sigCache[key];
+  const p=EXC[el]; if(!p) return sigCache[key]=sigmaKO(el,kV,ELEM[el].Ed);
+  const Ps=p.states.map(st=>pExc(el,kV,st.kappa));
+  let tot=(1-Ps.reduce((a,b)=>a+b,0))*sigmaKO(el,kV,p.Ed_gs);
+  p.states.forEach((st,i)=>{ tot+=Ps[i]*sigmaKO(el,kV,st.Ed); });
+  return sigCache[key]=tot;
+}
+// ---- Wave-optical probe (v1.2): aperture-limited, aberration-free, Gaussian focal spread (Cc, dE) and Gaussian source,
+// computed as a radial (Hankel) integral; matches the abTEM probe of the paper within a few per cent.
+const CC_A=1.2e7, DE_EV=0.8, SRC_A=0.5, PR_RMAX=12, PR_N=601, PR_DR=PR_RMAX/(PR_N-1);
+function bessJ0(x){
+  const ax=Math.abs(x);
+  if(ax<8){ const y=x*x;
+    const a=57568490574.0+y*(-13362590354.0+y*(651619640.7+y*(-11214424.18+y*(77392.33017+y*(-184.9052456)))));
+    const b=57568490411.0+y*(1029532985.0+y*(9494680.718+y*(59272.64853+y*(267.8532712+y))));
+    return a/b; }
+  const z=8/ax, y=z*z, xx=ax-0.785398164;
+  const a=1+y*(-0.1098628627e-2+y*(0.2734510407e-4+y*(-0.2073370639e-5+y*0.2093887211e-6)));
+  const b=-0.1562499995e-1+y*(0.1430488765e-3+y*(-0.6911147651e-5+y*(0.7621095161e-6-y*0.934935152e-7)));
+  return Math.sqrt(0.636619772/ax)*(Math.cos(xx)*a-z*Math.sin(xx)*b);
+}
+const probeCache={};
+function probeProfile(kV,alphaMrad){
+  const key=kV+"_"+alphaMrad; if(probeCache[key]) return probeCache[key];
+  const lam=lambdaA(kV), kmax=alphaMrad*1e-3/lam, NK=240, dk=kmax/NK, NF=15;
+  const sf=CC_A*(DE_EV/2.3548)/(kV*1e3);
+  const k=new Float64Array(NK); for(let j=0;j<NK;j++) k[j]=(j+0.5)*dk;
+  const fw=[], fd=[]; let ws=0; for(let i=0;i<NF;i++){ const u=-2.5+5*i/(NF-1); fd.push(u*sf); const w=Math.exp(-0.5*u*u); fw.push(w); ws+=w; }
+  const I=new Float64Array(PR_N);
+  const J=new Float64Array(PR_N*NK);
+  for(let i=0;i<PR_N;i++){ const r=i*PR_DR; for(let j=0;j<NK;j++) J[i*NK+j]=bessJ0(2*Math.PI*k[j]*r)*2*Math.PI*k[j]*dk; }
+  for(let f=0;f<NF;f++){
+    const c=new Float64Array(NK), s=new Float64Array(NK);
+    for(let j=0;j<NK;j++){ const ph=Math.PI*lam*fd[f]*k[j]*k[j]; c[j]=Math.cos(ph); s[j]=Math.sin(ph); }
+    for(let i=0;i<PR_N;i++){ let re=0,im=0; const o=i*NK; for(let j=0;j<NK;j++){ re+=J[o+j]*c[j]; im-=J[o+j]*s[j]; } I[i]+=fw[f]/ws*(re*re+im*im); }
+  }
+  // finite source: Hankel transform, Gaussian filter, inverse transform
+  const NQ=400, qmax=2*kmax, dq=qmax/(NQ-1), sg=SRC_A/2.3548, Iq=new Float64Array(NQ), Is=new Float64Array(PR_N);
+  for(let m=0;m<NQ;m++){ const q=m*dq; let a=0; for(let i=0;i<PR_N;i++){ const r=i*PR_DR; a+=I[i]*bessJ0(2*Math.PI*q*r)*2*Math.PI*r*PR_DR; } Iq[m]=a*Math.exp(-2*Math.PI*Math.PI*sg*sg*q*q); }
+  for(let i=0;i<PR_N;i++){ const r=i*PR_DR; let a=0; for(let m=0;m<NQ;m++){ const q=m*dq; a+=Iq[m]*bessJ0(2*Math.PI*q*r)*2*Math.PI*q*dq; } Is[i]=a; }
+  const p0=Is[0], rel=new Float64Array(PR_N); for(let i=0;i<PR_N;i++) rel[i]=Math.max(Is[i]/p0,0);
+  let fwhm=0; for(let i=1;i<PR_N;i++){ if(rel[i]<0.5){ fwhm=2*((i-1)+(rel[i-1]-0.5)/(rel[i-1]-rel[i]))*PR_DR; break; } }
+  return probeCache[key]={rel, peak:p0/(Math.PI*kmax*kmax), fwhm};   // peak: dose per electron at the centre (1/Å²), Parseval norm
+}
+// Displayed probe (HAADF render, FWHM readout): Gaussian core, FWHM² = (0.51λ/α)² + d_source² + d_Cc²
 function probeFWHM(kV,alphaMrad){
   const lam=lambdaA(kV), a=alphaMrad*1e-3;
   const dDiff=0.51*lam/a, dSrc=0.5, dCc=0.2*1.2e7*(0.8/(kV*1e3))*a;
   return Math.sqrt(dDiff*dDiff+dSrc*dSrc+dCc*dCc);
 }
+function relDose(r){
+  const pr=probeProfile(state.kV,state.alpha);
+  if(r>=PR_RMAX) return pr.rel[PR_N-1]*Math.pow(PR_RMAX/r,3);
+  const x=r/PR_DR, i=Math.floor(x), f=x-i; return pr.rel[i]*(1-f)+pr.rel[i+1]*f;
+}
+const R_EVENT=10; // Å: atoms within this distance of the probe are exposed to its tails
 function nElectrons(){ return state.I*1e-12*state.t/E_CHARGE; }
-function doseAt(r){ const w=probeFWHM(state.kV,state.alpha), k=4*Math.LN2; return nElectrons()*(k/(Math.PI*w*w))*Math.exp(-k*r*r/(w*w)); }
+function doseAt(r){ return nElectrons()*probeProfile(state.kV,state.alpha).peak*relDose(r); }
 // Exit-surface S goes first; the entrance (top) S becomes sputterable once the bottom S of its column is gone.
 function sputterable(site,atom){
   if(!atom.present) return false;
@@ -748,25 +809,25 @@ function update(){
     const col=isS2?` · ${T.column(nS)}`:"";
     let extra=T.inSpot;
     if(isS2) extra = at.layer==="inf" ? T.sExit : (sputterable(site,at) ? T.sLast : T.sEntry);
-    tb.innerHTML=`<div class="dot" style="background:${ELEM[at.el].color}">${at.el}</div><div class="t">${at.el} · Z = ${ELEM[at.el].Z} · M = ${ELEM[at.el].A} u${col}<small>${extra} · E_d = ${ELEM[at.el].Ed} eV</small></div>`;
+    tb.innerHTML=`<div class="dot" style="background:${ELEM[at.el].color}">${at.el}</div><div class="t">${at.el} · Z = ${ELEM[at.el].Z} · M = ${ELEM[at.el].A} u${col}<small>${extra} · E<sub>d</sub> = ${ELEM[at.el].Ed} eV</small></div>`;
   }
 
   let Em=0,Ed=null,sig=0,D=0,P=0,coll=0;
   if(at){ Em=Emax0(state.kV*1e3,ELEM[at.el].A); Ed=ELEM[at.el].Ed; sig=sputterable(site,at)?sigmaEff(at.el,state.kV):0; D=doseAt(Math.hypot(site.x-state.probe.x,site.y-state.probe.y)); P=1-Math.exp(-sig*1e-8*D); }
   if(state.probe){
-    state.sites.forEach((s,i)=>{ if(i===ti) return; const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>4*w) return; const d=doseAt(r); s.atoms.forEach(a=>{ if(sputterable(s,a)) coll+=1-Math.exp(-sigmaEff(a.el,state.kV)*1e-8*d); }); });
+    state.sites.forEach((s,i)=>{ if(i===ti) return; const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>R_EVENT) return; const d=doseAt(r); s.atoms.forEach(a=>{ if(sputterable(s,a)) coll+=1-Math.exp(-sigmaEff(a.el,state.kV)*1e-8*d); }); });
   }
   const scaleMax=Math.max(30,(Ed||0)*1.4,Em*1.1);
   $("gFill").style.width=(Math.min(Em,scaleMax)/scaleMax*100)+"%";
   $("gThr").style.left=Ed?`calc(${Ed/scaleMax*100}% - 1px)`:"-10px";
   $("gThr").style.display=Ed?"block":"none";
-  $("gThr").title=T.thrTitle;
+  $("gThr").title=T.thrTitle.replace(/E_d/g,"Ed");
   $("gMax").textContent=scaleMax.toFixed(0)+" eV";
-  $("gaugeTxt").textContent=at?`${Em.toFixed(2)} eV vs E_d ${Ed} eV`:"—";
+  $("gaugeTxt").innerHTML=at?`${Em.toFixed(2)} eV vs E<sub>d</sub> = ${Ed} eV`:"—";
   $("gFill").style.background=at?(Em>=Ed?"var(--ok)":"var(--beam)"):"var(--line)";
 
   const vals=[ fmtSci(Ne), at?fmtSci(D)+" e⁻/Å²":"—", at?fmtSigma(sig):"—", at?thresholdKV(at.el)+" kV":"—",
-    state.probe?coll.toFixed(coll<0.1?3:2)+" "+T.atoms:"—", fmtSci(state.I*1e-12/E_CHARGE*4*Math.LN2/(Math.PI*w*w))+" e⁻/Å²·s" ];
+    state.probe?coll.toFixed(coll<0.1?3:2)+" "+T.atoms:"—", fmtSci(state.I*1e-12/E_CHARGE*probeProfile(state.kV,state.alpha).peak)+" e⁻/Å²·s" ];
   $("readouts").innerHTML=vals.map((v,i)=>`<div class="ro"><span class="v">${v}</span><span class="k">${T.ro[i]}</span></div>`).join("");
   $("pBig").textContent=at?fmtP(P):"—";
   $("pBig").style.color=!at?"var(--muted)":P>0.5?"var(--ok)":P>0.05?"var(--warn)":"var(--fg)";
@@ -782,7 +843,7 @@ function expose(){
   const ejected=[]; let targetEjected=false, targetP=0, targetD=0, targetSig=0, secondS=false;
   const sputSnapshot = (site&&at) ? sputterable(site,at) : false;
   state.sites.forEach((s,i)=>{
-    const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>5*w) return;
+    const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>R_EVENT) return;
     const D=doseAt(r);
     const bottom=s.atoms.find(a=>a.layer==="inf"), top=s.atoms.find(a=>a.layer==="sup");
     if(bottom&&top&&bottom.present&&top.present){
@@ -835,6 +896,7 @@ function report(rec){
   else if(rec.hit){
     cls="ok";
     html=T.ejected(rec.el,Em.toFixed(2),Ed,fmtSigma(rec.sig),fmtSci(rec.D),fmtP(rec.P));
+    if(Em<Ed) html+=T.excNote;
     if(rec.secondS) html+=T.colEmpty; else if(rec.colEmpty) html+=T.colEmpty2; else if(rec.sLeft===1) html+=T.lastS;
     if(rec.collateral>0) html+=T.collat(rec.collateral);
   } else {
@@ -891,7 +953,7 @@ function checkMissions(rec){
 // ======================= LANGUAGE =======================
 function renderLegend(){
   const T=L(), els=[...new Set(MATERIALS[state.mat].basis.flatMap(b=>b.atoms.map(a=>a.el)))];
-  $("legend").innerHTML=els.map(e=>`<span><i style="background:${ELEM[e].color}"></i>${e} · E_d ${ELEM[e].Ed} eV · ${T.legendThr} ≈ ${thresholdKV(e)} kV</span>`).join("")+`<span>${T.legendZ}</span>`;
+  $("legend").innerHTML=els.map(e=>`<span><i style="background:${ELEM[e].color}"></i>${e} · E<sub>d</sub> ${ELEM[e].Ed} eV · ${T.legendThr} ≈ ${thresholdKV(e)} kV</span>`).join("")+`<span>${T.legendZ}</span>`;
 }
 function applyLang(){
   const T=L();
@@ -962,6 +1024,7 @@ $("restartBtn").addEventListener("click",()=>{
 });
 
 makeNoise(); applyLang();
+window.__ko={state,openLab,update};
 })();
 </script>
 
