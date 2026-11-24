@@ -1,0 +1,1597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Knock-on Lab: knock atoms out of graphene, hBN and MoS₂ with an electron microscope</title>
+<meta name="description" content="Free educational browser game: pick a 2D crystal (graphene, hBN or MoS₂), set up a STEM electron microscope and find out when the beam knocks an atom out. For schools, universities and anyone curious about science. Available in English, Spanish and Portuguese.">
+<meta name="keywords" content="educational game, electron microscopy, STEM, knock-on damage, sputtering, atoms, graphene, hBN, MoS2, 2D materials, physics, science outreach, juego educativo, microscopia eletrónica">
+<meta name="author" content="Luis E. Piedra, INL International Iberian Nanotechnology Laboratory">
+<meta name="theme-color" content="#0d1220">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://knockonlab.netlify.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Knock-on Lab">
+<meta property="og:title" content="Knock-on Lab: knock atoms out of a 2D crystal with an electron beam">
+<meta property="og:description" content="A free science game about how an electron microscope can remove single atoms from graphene, hBN and MoS₂.">
+<meta property="og:url" content="https://knockonlab.netlify.app/">
+<meta property="og:image" content="https://knockonlab.netlify.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Simulated HAADF-STEM image of graphene with an electron beam hitting a carbon vacancy">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="pt_PT">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": ["VideoGame", "LearningResource"],
+  "name": "Knock-on Lab",
+  "url": "https://knockonlab.netlify.app/",
+  "image": "https://knockonlab.netlify.app/og-image.jpg",
+  "description": "Educational browser game simulating electron-beam knock-on sputtering in scanning transmission electron microscopy (STEM) of graphene, hBN and MoS2.",
+  "genre": ["Educational", "Simulation"],
+  "gamePlatform": "Web browser",
+  "applicationCategory": "Game",
+  "isAccessibleForFree": true,
+  "inLanguage": ["en", "es", "pt"],
+  "educationalLevel": ["Secondary school", "Undergraduate"],
+  "learningResourceType": "Simulation",
+  "about": ["Electron microscopy", "Knock-on damage", "Graphene", "Hexagonal boron nitride", "MoS2"],
+  "author": { "@type": "Person", "name": "Luis E. Piedra", "sameAs": "https://orcid.org/0000-0001-8598-8529", "affiliation": { "@type": "Organization", "name": "International Iberian Nanotechnology Laboratory (INL)" } }
+}
+</script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: instrument console. Field-of-view canvas on the left, beam controls + physics readouts on the right; stacks on phones. Deliberate single dark theme (microscope UI). */
+:root{
+  color-scheme: dark;
+  --bg:#0d1220; --panel:#151c2d; --panel-2:#1b2438; --line:#29344d;
+  --fg:#e3e8f2; --muted:#8d98ad; --beam:#f3a83b; --beam-soft:rgba(243,168,59,.16);
+  --ok:#4cc38a; --bad:#ef6a5b; --warn:#e9c46a;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:0 32px}
+.wrap{max-width:1240px;margin:0 auto}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:18px 14px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.02em;text-transform:uppercase}
+.brand span{color:var(--beam)}
+.sub{color:var(--muted);font-size:14px}
+h2{font-family:var(--f-display);font-weight:600;font-size:22px;letter-spacing:.03em;text-transform:uppercase;margin:0;text-wrap:balance}
+.label{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.chip:focus-visible{outline:2px solid var(--beam);outline-offset:2px}
+
+/* ---- sample selection ---- */
+.intro{max-width:68ch;color:var(--muted);margin:22px 0 18px}
+.intro b{color:var(--fg);font-weight:600}
+.samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.sample{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0;text-align:left;display:flex;flex-direction:column;overflow:hidden;transition:border-color .15s,transform .15s}
+.sample:hover,.sample:focus-visible{border-color:var(--beam);box-shadow:0 0 0 2px var(--beam);transform:translateY(-2px)}
+.sample canvas{width:100%;aspect-ratio:16/10;display:block;background:#000}
+.sample .body{padding:14px 16px 16px;display:grid;gap:6px}
+.sample .name{font-family:var(--f-display);font-size:26px;font-weight:700;letter-spacing:.02em}
+.sample .facts{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.sample p{margin:0;font-size:14px;color:var(--muted)}
+
+/* ---- lab ---- */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;margin-top:18px}
+@media (max-width:920px){.lab{grid-template-columns:minmax(0,1fr)}}
+.viewer{display:grid;gap:10px;min-width:0}
+.viewbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.screen{position:relative;border:1px solid var(--line);border-radius:4px;background:#000;overflow:hidden;max-width:100%}
+.screen canvas{display:block;width:100%;height:auto;aspect-ratio:1/1;cursor:crosshair;touch-action:manipulation}
+.hud{position:absolute;left:10px;top:8px;font-family:var(--f-mono);font-size:11px;color:#cfd6e4;text-shadow:0 1px 2px #000;pointer-events:none;line-height:1.5}
+.hud.r{left:auto;right:10px;text-align:right}
+.scalebar{position:absolute;left:12px;bottom:12px;pointer-events:none;font-family:var(--f-mono);font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
+.scalebar i{display:block;width:100%;height:4px;background:#fff;margin-bottom:4px;box-shadow:0 1px 2px #000}
+.toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(13,18,32,.92);border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:13px;white-space:nowrap;pointer-events:none;transition:opacity .3s}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 12px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg)}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.ghost:hover{color:var(--fg);border-color:var(--muted)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-width:0}
+.sect{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:10px}
+.sect:first-child{border-top:0}
+.ctrl{display:grid;gap:6px}
+.ctrl .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .hint{font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel-2);border:1px solid var(--line);border-radius:3px;padding:5px 9px;font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip:hover{color:var(--fg)}
+.chip[aria-pressed="true"]{background:var(--beam-soft);border-color:var(--beam);color:var(--beam)}
+
+.target{display:flex;align-items:center;gap:10px;min-height:34px}
+.dot{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:13px;color:#111}
+.target .t{font-size:14px}
+.target .t small{display:block;color:var(--muted);font-size:12px}
+
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.ro{display:grid;gap:1px;min-width:0}
+.ro .v{font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro .k{font-size:11.5px;color:var(--muted)}
+
+.gauge{display:grid;gap:4px}
+.gauge .track{position:relative;height:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:2px}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;background:var(--beam);border-radius:1px;transition:width .25s}
+.gauge .thr{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg)}
+.gauge .cap{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+
+.prob{display:flex;align-items:center;gap:12px}
+.prob .big{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.prob .txt{font-size:12.5px;color:var(--muted)}
+
+.fire{margin:0 16px 16px;background:var(--beam);color:#1a1205;border:0;border-radius:4px;padding:12px;font-family:var(--f-display);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase}
+.fire:hover{filter:brightness(1.08)}
+.fire:disabled{opacity:.45;cursor:not-allowed}
+
+.result{border-left:3px solid var(--line);padding:8px 12px;background:var(--panel-2);border-radius:0 4px 4px 0;font-size:14px}
+.result.ok{border-left-color:var(--ok)} .result.bad{border-left-color:var(--bad)} .result.neutral{border-left-color:var(--warn)}
+.result b{font-weight:600}
+
+.side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:20px;align-items:start}
+@media (max-width:920px){.side{grid-template-columns:minmax(0,1fr)}}
+.side details.model{grid-column:1/-1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.missions{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.missions li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.missions .ck{width:20px;height:20px;border:1.5px solid var(--line);border-radius:3px;display:grid;place-items:center;font-size:13px;color:var(--bg);margin-top:2px}
+.missions li.done .ck{background:var(--ok);border-color:var(--ok)}
+.missions .mt{font-weight:600}
+.missions .md{font-size:13px;color:var(--muted)}
+.log{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:4px}
+.log table{width:100%;border-collapse:collapse;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.log th,.log td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.log th{position:sticky;top:0;background:var(--panel-2);color:var(--muted);font-weight:500}
+.log .y{color:var(--ok)} .log .n{color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;padding:10px}
+
+details.model{margin-top:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 16px}
+details.model summary{cursor:pointer;font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:15px}
+details.model .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:12px;font-size:14px}
+details.model p{margin:0 0 8px;max-width:68ch}
+sub,sup{font-size:72%;line-height:0;position:relative}
+.eq{font-family:var(--f-mono);font-size:12.5px;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:8px 10px;overflow-x:auto;white-space:pre;margin:4px 0 10px}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;font-size:13px;width:100%}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
+.tbl th{color:var(--muted);font-weight:600}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend>span{display:inline-block}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block;vertical-align:-1px;margin-right:5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.langsel{display:inline-flex;align-items:center;gap:8px}
+.langsel .seg button{font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;padding:5px 10px}
+.brandrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.restart{background:transparent;border:1px solid var(--beam);color:var(--beam);border-radius:4px;padding:5px 12px;font-family:var(--f-display);font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.restart:hover{background:var(--beam-soft)}
+footer.foot{margin-top:24px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px}
+footer.foot a{color:var(--muted)}
+footer.foot a:hover{color:var(--fg)}
+.restart.confirm{background:var(--beam);color:#1a1205}
+.toprow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+
+/* ---- Desktop: fit the whole lab in one screen (no page scroll) ----
+   Classic layout: challenges, log and model notes on the left, screen in the middle, controls on the right. */
+@media (min-width:1200px) and (min-height:600px){
+  .wrap{max-width:1800px}
+  body{padding-block-end:0}
+  body.th-classic #lab:not([hidden]){display:grid;grid-template-columns:minmax(260px,1fr) auto minmax(400px,440px);
+    grid-template-rows:minmax(0,1fr);column-gap:20px;margin-top:16px;align-items:start;height:calc(100dvh - 103px)}
+  body.th-classic #lab .lab{display:contents}
+  body.th-classic #lab .viewer{grid-column:2;grid-row:1}
+  body.th-classic #lab .panel{grid-column:3;grid-row:1}
+  body.th-classic #lab .side{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:stretch;gap:16px;margin-top:0;align-self:stretch;min-height:0}
+  #lab details.model{padding:0 14px 12px;min-width:0;min-height:0;flex:0 0 auto}
+  #lab details.model[open]{flex:1 1 auto;overflow:auto;overscroll-behavior:contain}
+  #lab details.model summary{position:sticky;top:0;background:var(--panel);padding:12px 0 8px;z-index:1}
+  #lab details.model .cols{grid-template-columns:minmax(0,1fr);gap:10px;font-size:13px;margin-top:4px}
+  #lab details.model .eq{font-size:11.5px}
+  #lab:has(details.model[open]) .log{max-height:110px;min-height:0}
+  body.th-classic #lab .screen{width:min(calc(100vw - 32px - 40px - 440px - 260px), calc(100dvh - 186px));min-width:420px}
+  #lab .log{max-height:calc(100dvh - 560px);min-height:110px}
+}
+/* Shorter laptop screens: tighten the control panel so FIRE stays visible */
+@media (min-width:1200px) and (max-height:900px){
+  header.top{padding-block:12px 10px}
+  #lab .sect{padding:9px 14px;gap:7px}
+  #lab .ctrl{gap:4px}
+  #lab .chip{padding:3px 8px;font-size:12px}
+  #lab .readouts{gap:4px 12px}
+  #lab .prob .big{font-size:30px}
+  #lab .fire{padding:9px;margin:0 14px 12px;font-size:17px}
+  #lab .result{font-size:13px;padding:6px 10px}
+  body.th-classic #lab .screen{width:min(calc(100vw - 32px - 40px - 440px - 260px), calc(100dvh - 166px))}
+  body.th-classic #lab:not([hidden]){height:calc(100dvh - 93px)}
+}
+@media (min-width:1200px) and (max-height:820px){
+  #lab .chip{padding:3px 6px;font-size:11.5px}
+  #lab .chips{gap:5px}
+  #lab .readouts{grid-template-columns:1fr 1fr 1fr}
+  #lab .ro .v{font-size:13px}
+  #lab .ro .k{font-size:11px;line-height:1.25}
+  #lab .sect{padding:7px 14px;gap:6px}
+  #lab .target{min-height:26px}
+  #lab .prob .big{font-size:26px}
+  #lab .prob .txt{font-size:12px;line-height:1.3}
+  #lab .result{line-height:1.3;font-size:12.5px}
+  #lab .prob .big{white-space:nowrap}
+  #lab .prob{gap:10px}
+}
+
+/* =================================================================== v1.1 UI
+   Start page, tutorial and the two instrument-style themes. Everything is driven by
+   body.th-classic / body.th-tia / body.th-velox; the physics code does not know about it. */
+.foot .nonaff{flex-basis:100%;font-size:11.5px;opacity:.85}
+.tutbtn{padding:5px 12px}
+.prob .big{white-space:nowrap}
+.toast{color:#e3e8f2;border-color:#29344d} /* the toast is always dark, so it sets its own text colour */
+.tut.inline{position:static;width:auto;max-width:none;margin:0 0 16px;box-shadow:none;padding:18px 22px;font-size:18px;line-height:1.55}
+.tut.inline .tut-step{font-size:14px}
+.tut.inline .tut-title{font-size:30px;margin:6px 0 8px}
+.tut.inline .tut-hint{font-size:16px}
+.tut.inline .tut-next{font-size:17px;padding:9px 18px}
+.tut.inline .ghost,.tut.inline .tut-skip{font-size:15px}
+.rbtn.acq{background:#3f8f3a;border-color:#5fae58;color:#fff;font-weight:700;padding:6px 14px}
+button.rbtn.acq:hover{background:#4aa344;border-color:#7fd07a}
+.rbtn.acq:disabled{opacity:.45;cursor:not-allowed}
+.ph{display:none}
+body:not(.th-classic) .ph{display:block}
+
+/* ---- welcome page ---- */
+.stitle{font-family:var(--f-display);font-weight:700;font-size:30px;letter-spacing:.02em;text-transform:uppercase;margin:26px 0 6px;text-wrap:balance}
+.lead{font-size:17px;line-height:1.6;color:var(--muted);margin:10px 0}
+.lead b{color:var(--fg);font-weight:600}
+.startbtns{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:22px}
+#start .startnext{margin:0;padding:12px 40px;width:auto}
+.startskip{font-size:14px}
+.selh{margin:22px 0 14px}
+#select.pick-iface .selh,#select.pick-iface #samples{display:none}
+#select.pick-iface .tut.inline{margin-top:78px}
+.tutarrow{position:absolute;z-index:61;width:44px;height:60px;pointer-events:none;animation:tutbob 1.1s ease-in-out infinite}
+@keyframes tutbob{50%{transform:translateY(-8px)}}
+.tutarrow.side{transform:rotate(-90deg);animation-name:tutbobside}
+@keyframes tutbobside{0%,100%{transform:rotate(-90deg)}50%{transform:rotate(-90deg) translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.tutarrow{animation:none}}
+
+/* ---- tutorial ---- */
+.tut{position:fixed;z-index:60;width:340px;max-width:calc(100vw - 16px);background:#0f1626;color:#e3e8f2;border:1px solid #f3a83b;border-radius:8px;
+  padding:14px 16px;box-shadow:0 14px 40px rgba(0,0,0,.5);font-family:"Source Sans 3",system-ui,sans-serif;font-size:14.5px;line-height:1.45}
+.tut.sheet{left:8px!important;right:8px;top:auto!important;bottom:8px;width:auto;max-height:46vh;overflow:auto}
+.tut-step{font:600 12px/1.2 "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#f3a83b}
+.tut-title{font:700 22px/1.15 "Barlow Condensed","Arial Narrow",sans-serif;margin:4px 0 6px;color:#fff}
+.tut-text b{color:#fff}
+.tut-hint{color:#e9c46a;font-size:13px;margin-top:6px}
+.tut-btns{display:flex;gap:8px;align-items:center;margin-top:12px}
+.tut-next{background:#f3a83b;color:#1a1205;border:0;border-radius:4px;padding:7px 14px;font:700 15px "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.tut-next:disabled{opacity:.4;cursor:not-allowed}
+.tut .ghost{color:#c9d1df;border-color:#3a4763;background:transparent;border-radius:4px}
+.tut .ghost:disabled{opacity:.35;cursor:not-allowed}
+.tut-skip{background:none;border:0;color:#8d98ad;font-size:13px;text-decoration:underline;padding:0}
+.tut-hl{outline:3px solid #f3a83b!important;outline-offset:3px;border-radius:4px;animation:tutpulse 1.6s ease-in-out infinite}
+@keyframes tutpulse{50%{outline-color:rgba(243,168,59,.3)}}
+@media (prefers-reduced-motion:reduce){.tut-hl{animation:none}}
+
+/* ---- instrument chrome (hidden in the classic layout) ---- */
+.tbar,.ribbon,.vstrip,.status,.vtab,.wtabs,.histcard{display:none}
+canvas.hist{display:block;width:100%;height:auto;image-rendering:pixelated}
+.status .c,.vstrip .c{min-width:0}
+
+/* =================================================================== TIA style */
+html:has(body.th-tia){background:#d4d0c8}
+body.th-tia{--bg:#d4d0c8;--panel:#ecebe6;--panel-2:#ffffff;--line:#9a9a9a;--fg:#111;--muted:#4a4a4a;--beam:#a86400;--beam-soft:rgba(255,228,60,.5);
+  --ok:#0b7a3b;--bad:#b3261e;--warn:#8a5d00;color-scheme:light;
+  --f-display:Tahoma,Verdana,"Segoe UI",Arial,sans-serif;--f-body:Tahoma,Verdana,"Segoe UI",Arial,sans-serif}
+body.th-tia .label{text-transform:none;letter-spacing:0;font-weight:700;font-size:12px;color:#111}
+body.th-tia h2,body.th-tia .stitle{text-transform:none;letter-spacing:0}
+body.th-tia .brand{color:#1d2b4f;text-transform:none}
+body.th-tia .seg,body.th-tia .ghost,body.th-tia .restart{border-radius:0;border:1px solid;border-color:#fff #7a7a7a #7a7a7a #fff;background:#ecebe6;color:#111}
+body.th-tia .seg button{color:#222}
+body.th-tia .seg button[aria-pressed="true"]{background:#ffe94a;color:#000}
+body.th-tia .restart{font-family:Tahoma,Verdana,sans-serif;font-size:13px;letter-spacing:0;text-transform:none;font-weight:700}
+body.th-tia .restart.confirm{background:#ffe94a}
+body.th-tia .sample{border-radius:0;border:1px solid #8a8a8a}
+body.th-tia .sample .name{letter-spacing:0}
+body.th-tia #lab .panel{border-radius:0;border:1px solid #8a8a8a;background:var(--panel)}
+body.th-tia #lab .panel>.wtabs{display:flex;padding:5px 6px 0;background:#d4d0c8;border-bottom:1px solid #8a8a8a}
+.wtabs span{padding:2px 9px;border:1px solid #9a9a9a;border-bottom:0;background:#e2dfd8;font:12px Tahoma,Verdana,sans-serif;color:#333;margin-right:-1px}
+.wtabs span.on{background:#fff;font-weight:700;position:relative;top:1px}
+body.th-tia #lab .sect{border-top:0;padding:0 10px 10px;gap:7px}
+body.th-tia #lab .sect>.label:first-child,
+body.th-tia #lab .side .card>.label:first-child,body.th-velox #lab .side .card>.label:first-child{
+  margin:6px -10px 2px;padding:4px 8px;background:linear-gradient(#8a97b3,#5f6c8b);color:#fff;font:700 13px Tahoma,Verdana,sans-serif;display:flex;justify-content:space-between;align-items:center}
+body.th-tia #lab .sect>.label:first-child::after,
+body.th-tia #lab .side .card>.label:first-child::after,body.th-velox #lab .side .card>.label:first-child::after{content:"▸";font-size:10px;background:#fff;color:#333;padding:0 3px;border:1px solid #444}
+body.th-tia .chip{background:#ecebe6;color:#000;border:1px solid;border-color:#fff #7a7a7a #7a7a7a #fff;border-radius:0;font-family:Tahoma,Verdana,sans-serif}
+body.th-tia .chip:hover{background:#f6f4ee}
+body.th-tia .chip[aria-pressed="true"]{background:#ffe94a;border-color:#7a7a7a #fff #fff #7a7a7a;color:#000}
+body.th-tia .gauge .track{background:#fff;border-color:#7a7a7a;border-radius:0}
+/* Target physics uses the same colours as the Lab and Velox layouts (gauge fill and probability) */
+body.th-tia #lab .gauge,body.th-tia #pBig{--beam:#f3a83b;--ok:#4cc38a;--warn:#e9c46a}
+body.th-tia .fire{background:#f5e663;color:#000;border:2px solid;border-color:#fffbd0 #8a7f20 #8a7f20 #fffbd0;border-radius:0;font-family:Tahoma,Verdana,sans-serif;letter-spacing:.04em;font-size:16px;margin:4px 10px 10px}
+body.th-tia .fire:hover{filter:none;background:#fff06a}
+body.th-tia .result{background:#fff;border-radius:0}
+body.th-tia #lab .viewer{background:#e9edf4;border:1px solid #9aa3b5;padding:8px;gap:8px}
+body.th-tia #lab .screen{border:5px solid #fff;box-shadow:0 0 0 1px #8a8a8a;border-radius:0}
+body.th-tia #lab .tbar,body.th-velox #lab .tbar{display:flex;align-items:center;gap:14px;padding:3px 8px;font:12px Tahoma,"Segoe UI",sans-serif;white-space:nowrap;overflow:hidden}
+body.th-tia #lab .tbar{background:linear-gradient(#f2f4f8,#cfd6e2);color:#444;border:1px solid #9aa3b5;border-bottom:0}
+.tbar .tt{font-weight:700}.tbar .tm{opacity:.75;word-spacing:.7em}.tbar .tw{margin-left:auto;letter-spacing:.35em}
+body.th-tia #lab .status,body.th-velox #lab .status{display:grid;gap:1px 22px;background:#f7f7f7;color:#000;border:1px solid #9a9a9a;padding:6px 14px;font:600 15px/1.4 Tahoma,Verdana,sans-serif}
+body.th-tia #lab .status{grid-template-columns:repeat(3,minmax(0,1fr))}
+.status .c{display:flex;justify-content:space-between;gap:8px;white-space:nowrap}
+.status .c span{font-weight:400}
+body.th-tia #lab .side,body.th-velox #lab .side{--panel:#ecebe6;--panel-2:#ffffff;--line:#9a9a9a;--fg:#111;--muted:#4a4a4a;--ok:#0b7a3b;--bad:#b3261e;--warn:#8a5d00;--bg:#d4d0c8;
+  color:#111;background:#d4d0c8;color-scheme:light;font-family:Tahoma,Verdana,"Segoe UI",sans-serif}
+body.th-tia #lab .side .card,body.th-velox #lab .side .card,body.th-tia #lab .side details.model,body.th-velox #lab .side details.model{border-radius:0;border:1px solid #8a8a8a;padding:0 10px 10px;background:var(--panel)}
+body.th-tia #lab .side .label,body.th-velox #lab .side .label{text-transform:none;letter-spacing:0;font-weight:700;font-size:12px}
+body.th-tia #lab .side details.model summary,body.th-velox #lab .side details.model summary{margin:0 -10px;padding:4px 8px;background:linear-gradient(#8a97b3,#5f6c8b);color:#fff;font:700 13px Tahoma,Verdana,sans-serif;letter-spacing:0;text-transform:none;position:static}
+body.th-tia #lab .side details.model[open] summary,body.th-velox #lab .side details.model[open] summary{position:sticky;top:0;z-index:1}
+body.th-tia #lab .side .histcard{display:grid}
+body.th-tia #lab .log,body.th-velox #lab .log{border-radius:0;background:#fff}
+
+/* =================================================================== Velox style */
+html:has(body.th-velox){background:#1c1f24}
+body.th-velox{--bg:#1c1f24;--panel:#2b3037;--panel-2:#363c44;--line:#4b535d;--fg:#eceff3;--muted:#a7b0bb;
+  --f-display:"Segoe UI",Tahoma,system-ui,sans-serif;--f-body:"Segoe UI",Tahoma,system-ui,sans-serif}
+body.th-velox .label{text-transform:none;letter-spacing:.01em;font-weight:600;font-size:12.5px;color:#d5dbe2}
+body.th-velox h2,body.th-velox .stitle,body.th-velox .brand{text-transform:none;letter-spacing:0}
+body.th-velox .sample{border-radius:3px}
+body.th-velox #lab .tbar{background:linear-gradient(#5c8ad3,#2f5fae);color:#fff;border:1px solid #23406f;border-bottom:0}
+body.th-velox #lab .ribbon{display:flex;flex-wrap:wrap;background:linear-gradient(#454b54,#30353c);border:1px solid #15181c;border-top:0}
+.rg{display:grid;grid-template-rows:1fr auto;border-right:1px solid #1d2126}
+.rb{display:flex;gap:4px;align-items:center;justify-content:center;padding:6px 8px;flex-wrap:wrap}
+.rb.rgrid{display:grid;grid-template-columns:auto auto;gap:2px 8px}
+.rl{font:11px "Segoe UI",Tahoma,sans-serif;text-align:center;background:#2d4f80;color:#e6edf6;padding:1px 10px}
+.rl.g{background:#3f7d3a}
+.rbtn{background:transparent;border:1px solid transparent;color:#e3e8ee;font:12.5px "Segoe UI",Tahoma,sans-serif;padding:3px 8px;border-radius:2px;white-space:nowrap}
+button.rbtn:hover{border-color:#7f93ab;background:#4a5562}
+.rbtn.on{background:#5a6a7c;border-color:#8aa0b8}
+.rbtn.off{opacity:.45;cursor:default}
+.rbtn.radio::before{content:"○ ";color:#9aa6b4}
+.rbtn.radio[aria-pressed="true"]::before{content:"◉ ";color:#7fd07a}
+.rbtn.radio[aria-pressed="true"]{background:#4c5a6a;border-color:#6f849b}
+body.th-velox #lab .viewer{background:linear-gradient(180deg,#58728f,#3d536b);padding:6px 14px 8px;gap:6px}
+body.th-velox #lab .viewbar{display:none}
+body.th-velox #lab .vtab{display:block;justify-self:start;width:max-content;background:#e8dca0;color:#333;font:12px "Segoe UI",Tahoma,sans-serif;padding:2px 12px;border-radius:3px 3px 0 0}
+body.th-velox #lab .screen{border:0;border-radius:0;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+body.th-velox #lab .legend{color:#e3eaf2}
+body.th-velox #lab .panel{border-radius:0;border:1px solid #15181c;background:#2b3037}
+body.th-velox #lab .sect{padding:0 14px 12px;border-top:1px solid #1b1e22;gap:7px}
+body.th-velox #lab .sect>.label:first-child{margin:0 -14px 2px;padding:4px 10px;background:#23272d;color:#dfe4ea;font-size:12px}
+body.th-velox #lab .sect>.label:first-child::before{content:"▴  ";color:#9aa6b4}
+body.th-velox .chip{background:#3a4049;border-color:#555d68;color:#dfe4ea;border-radius:2px}
+body.th-velox .chip[aria-pressed="true"]{background:#4f74a0;border-color:#86a8cf;color:#fff}
+body.th-velox .fire{background:#3f8f3a;color:#fff;border-radius:2px;margin:2px 14px 8px;padding:9px;font-size:17px}
+body.th-velox #lab .panel .sect{padding:0 14px 8px;gap:5px}
+body.th-velox #lab .panel .sect>.label:first-child{padding:3px 10px}
+body.th-velox #lab .panel .ctrl{gap:3px}
+body.th-velox #lab .panel .chips{gap:4px}
+body.th-velox #lab .panel .chip{padding:3px 6px;font-size:11.5px}
+body.th-velox #lab .panel .target{min-height:26px}
+body.th-velox #lab .panel .readouts{grid-template-columns:1fr 1fr 1fr;gap:3px 10px}
+body.th-velox #lab .panel .ro .v{font-size:13px}
+body.th-velox #lab .panel .ro .k{font-size:11px;line-height:1.25}
+body.th-velox #lab .panel .prob{gap:10px}
+body.th-velox #lab .panel .prob .big{font-size:27px}
+body.th-velox #lab .panel .prob .txt{font-size:12px;line-height:1.3}
+body.th-velox #lab .panel .result{font-size:12.5px;line-height:1.35;padding:6px 10px}
+@media (max-height:820px){
+  body.th-velox #lab .panel .chip{padding:3px 4px;font-size:11px}
+  body.th-velox #lab .panel .chips{gap:3px}
+  body.th-velox #lab .panel .sect{padding-bottom:6px;gap:4px}
+  body.th-velox #lab .panel .gauge{gap:2px}
+  body.th-velox #lab .panel .prob .big{font-size:24px}
+}
+body.th-velox .result{border-radius:0}
+body.th-velox #lab .vstrip{display:flex;flex-wrap:wrap;background:#262a30;border:1px solid #15181c;border-top:0}
+.vstrip .c{display:grid;padding:3px 11px;border-right:1px solid #3c424a;font-family:"Segoe UI",Tahoma,sans-serif}
+.vstrip .c span{font-size:10.5px;color:#a9b3bf;white-space:nowrap}
+.vstrip .c b{font-size:13px;color:#fff;white-space:nowrap}
+body.th-velox #lab .status{grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px 14px;font-size:13px;padding:4px 12px;border-top:0}
+body.th-velox #lab .side{border:1px solid #8a8a8a;padding:0 8px 8px}
+body.th-velox #lab .side>.wtabs{display:flex;margin:0 -8px;padding:5px 6px 0;border-bottom:1px solid #8a8a8a}
+
+/* ---- narrow screens: themes stack like the classic layout ---- */
+body.th-tia #lab .tbar,body.th-velox #lab .tbar{margin-top:14px}
+body.th-tia #lab .lab,body.th-velox #lab .lab{margin-top:0}
+body.th-tia #lab .status,body.th-velox #lab .vstrip{margin-top:0}
+
+/* ---- desktop: each theme fills one screen ---- */
+@media (min-width:1200px) and (min-height:600px){
+  body.th-tia #lab:not([hidden]),body.th-velox #lab:not([hidden]){display:grid;height:calc(100dvh - 103px);margin-top:16px}
+  body.th-tia #lab .lab,body.th-velox #lab .lab{display:contents}
+  body.th-tia #lab .tbar,body.th-velox #lab .tbar{margin-top:0}
+  body.th-tia #lab:not([hidden]){grid-template-columns:minmax(330px,370px) minmax(230px,270px) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;column-gap:10px}
+  body.th-tia #lab .panel{grid-column:1;grid-row:1/4;overflow:auto;min-height:0;align-self:stretch;overscroll-behavior:contain}
+  body.th-tia #lab .tbar{grid-column:2/4;grid-row:1;margin-left:-10px;padding-left:18px}
+  body.th-tia #lab .side{grid-column:2;grid-row:2;display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0;min-height:0;overflow:auto;align-self:stretch;padding-top:4px}
+  body.th-tia #lab .viewer{grid-column:3;grid-row:2;align-self:stretch;justify-items:center;align-content:start;border-top:0;min-width:0}
+  body.th-tia #lab .viewbar{justify-self:stretch}
+  body.th-tia #lab .status{grid-column:2/4;grid-row:3}
+  body.th-tia #lab .screen{width:min(calc(100vw - 32px - 370px - 270px - 20px - 20px), calc(100dvh - 103px - 25px - 84px - 52px - 28px - 34px));min-width:360px}
+  body.th-tia #lab .log{max-height:none;flex:0 1 auto;min-height:110px}
+
+  body.th-velox #lab:not([hidden]){grid-template-columns:minmax(250px,290px) minmax(0,1fr) minmax(360px,400px);grid-template-rows:auto auto minmax(0,1fr) auto auto}
+  body.th-velox #lab .side{grid-column:1;grid-row:1/6;display:flex;flex-direction:column;align-items:stretch;gap:8px;margin:0 10px 0 0;min-height:0;overflow:auto;align-self:stretch}
+  body.th-velox #lab .tbar{grid-column:2/4;grid-row:1}
+  body.th-velox #lab .ribbon{grid-column:2/4;grid-row:2}
+  body.th-velox #lab .viewer{grid-column:2;grid-row:3;align-self:stretch;justify-items:center;align-content:start;min-width:0}
+  body.th-velox #lab .panel{grid-column:3;grid-row:3/6;overflow:auto;min-height:0;align-self:stretch;overscroll-behavior:contain}
+  body.th-velox #lab .vstrip{grid-column:2;grid-row:4}
+  body.th-velox #lab .status{grid-column:2;grid-row:5}
+  body.th-velox #lab .screen{width:min(calc(100vw - 32px - 290px - 10px - 400px - 30px), calc(100dvh - 103px - 25px - 64px - 42px - 30px - 26px - 40px));min-width:340px}
+  body.th-velox #lab .log{max-height:none;flex:0 1 auto;min-height:110px}
+}
+@media (max-width:700px){ body.th-tia #lab .status,body.th-velox #lab .status{grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 14px;font-size:13px;padding:5px 10px} }
+/* ---- laptops (≤ 900 px tall): compact TIA and Velox so the image stays large and FIRE is visible ---- */
+@media (min-width:1200px) and (max-height:900px){
+  body.th-tia #lab:not([hidden]),body.th-velox #lab:not([hidden]){height:calc(100dvh - 84px)!important;margin-top:10px!important}
+  body.th-tia #lab .panel .sect,body.th-velox #lab .panel .sect{padding:0 12px 6px;gap:4px}
+  body.th-tia #lab .panel .sect>.label:first-child{margin:4px -12px 1px;padding:3px 8px;font-size:12px}
+  body.th-velox #lab .panel .sect>.label:first-child{margin:0 -12px 1px;padding:3px 10px;font-size:11.5px}
+  body.th-tia #lab .panel>.wtabs{display:none}
+  body.th-tia #lab .panel .ctrl,body.th-velox #lab .panel .ctrl{gap:2px}
+  body.th-tia #lab .panel .ctrl .head .label,body.th-velox #lab .panel .ctrl .head .label{font-size:11.5px}
+  body.th-tia #lab .panel .ctrl .hint,body.th-velox #lab .panel .ctrl .hint{font-size:11px}
+  body.th-tia #lab .panel .chips,body.th-velox #lab .panel .chips{gap:3px}
+  body.th-tia #lab .panel .chip,body.th-velox #lab .panel .chip{padding:2px 5px;font-size:11px}
+  body.th-tia #lab .panel .target,body.th-velox #lab .panel .target{min-height:24px;gap:8px}
+  body.th-tia #lab .panel .dot,body.th-velox #lab .panel .dot{width:22px;height:22px;font-size:11px}
+  body.th-tia #lab .panel .target .t,body.th-velox #lab .panel .target .t{font-size:12.5px;line-height:1.3}
+  body.th-tia #lab .panel .target .t small,body.th-velox #lab .panel .target .t small{font-size:11px}
+  body.th-tia #lab .panel .gauge,body.th-velox #lab .panel .gauge{gap:2px}
+  body.th-tia #lab .panel .gauge .cap,body.th-velox #lab .panel .gauge .cap{font-size:10.5px}
+  body.th-tia #lab .panel .readouts,body.th-velox #lab .panel .readouts{grid-template-columns:1fr 1fr 1fr;gap:2px 8px}
+  body.th-tia #lab .panel .ro .v,body.th-velox #lab .panel .ro .v{font-size:12px}
+  body.th-tia #lab .panel .ro .k,body.th-velox #lab .panel .ro .k{font-size:10.5px;line-height:1.2}
+  body.th-tia #lab .panel .prob,body.th-velox #lab .panel .prob{gap:8px}
+  body.th-tia #lab .panel .prob .big,body.th-velox #lab .panel .prob .big{font-size:23px}
+  body.th-tia #lab .panel .prob .txt,body.th-velox #lab .panel .prob .txt{font-size:11px;line-height:1.25}
+  body.th-tia #lab .panel .fire,body.th-velox #lab .panel .fire{padding:6px;font-size:15px;margin:2px 12px 6px}
+  body.th-tia #lab .panel .result,body.th-velox #lab .panel .result{font-size:11.5px;line-height:1.3;padding:5px 8px}
+  /* TIA: shorter status bar and toolbar */
+  body.th-tia #lab .status{font-size:13px;line-height:1.25;padding:3px 12px}
+  body.th-tia #lab .viewer{padding:6px;gap:6px}
+  body.th-tia #lab .viewbar .ghost,body.th-tia #lab .viewbar .seg button{padding:4px 10px}
+  body.th-tia #lab .viewbar h2{font-size:19px}
+  body.th-tia #lab .screen{width:min(calc(100vw - 32px - 370px - 270px - 40px), calc(100dvh - 84px - 25px - 56px - 40px - 24px - 34px));min-width:300px}
+  /* Velox: the light status bar repeats the info strip, so it goes; slimmer ribbon */
+  body.th-velox #lab .status{display:none}
+  body.th-velox #lab .rb{padding:3px 6px}
+  body.th-velox #lab .rbtn{padding:2px 6px;font-size:12px}
+  body.th-velox #lab .rbtn.acq{padding:4px 12px}
+  body.th-velox #lab .rl{font-size:10px}
+  body.th-velox #lab .vstrip .c{padding:2px 9px}
+  body.th-velox #lab .vstrip .c b{font-size:12px}
+  body.th-velox #lab .viewer{padding:4px 12px 6px;gap:4px}
+  body.th-velox #lab .screen{width:min(calc(100vw - 32px - 290px - 10px - 400px - 30px), calc(100dvh - 84px - 24px - 52px - 38px - 22px - 22px - 24px));min-width:300px}
+}
+@media (min-width:1200px) and (max-width:1700px){ body.th-velox #lab .vstrip .c.opt{display:none} }
+</style>
+</head>
+<body class="th-classic">
+
+<div class="wrap">
+  <header class="top">
+    <div class="brandrow"><div class="brand">Knock-on <span>Lab</span></div><button type="button" class="restart" id="restartBtn" data-i="restart"></button><button type="button" class="ghost tutbtn" id="tutBtn" data-i="tutBtn"></button></div>
+    <div class="toprow">
+      <div class="sub" data-i="sub"></div>
+      <div class="langsel">
+        <span class="label" data-i="ifaceLabel"></span>
+        <div class="seg" role="group" id="ifaceSeg" aria-label="Interface">
+          <button type="button" data-th="classic">Lab</button>
+          <button type="button" data-th="tia">TIA</button>
+          <button type="button" data-th="velox">Velox</button>
+        </div>
+      </div>
+      <div class="langsel">
+        <span class="label" data-i="langLabel"></span>
+        <div class="seg" role="group" id="langSeg" aria-label="Language">
+          <button type="button" data-lang="es">ES</button>
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="pt">PT</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ START: choose the interface ============ -->
+  <section id="start">
+    <h1 class="stitle" data-i="welcome"></h1>
+    <p class="lead" data-ih="intro"></p>
+    <p class="lead" data-i="introTut"></p>
+    <div class="startbtns"><button type="button" class="fire startnext" id="startNext" data-i="startNext"></button><button type="button" class="tut-skip startskip" id="startSkip" data-i="startSkip"></button></div>
+  </section>
+
+  <!-- ============ SELECTION ============ -->
+  <section id="select" hidden>
+    <h2 class="selh" data-i="pickSample"></h2>
+    <div class="samples" id="samples"></div>
+  </section>
+
+  <!-- ============ LAB ============ -->
+  <section id="lab" hidden>
+    <div class="tbar" aria-hidden="true"><span class="tt" id="tbarTitle"></span><span class="tm" id="tbarMenu"></span><span class="tw">▁ ▢ ✕</span></div>
+    <div class="ribbon">
+      <div class="rg"><div class="rb"><button type="button" class="rbtn" id="rbBack" data-i="back"></button></div><div class="rl">Layout</div></div>
+      <div class="rg"><div class="rb"><span class="rbtn off">TEM</span><span class="rbtn on">STEM</span></div><div class="rl">Optics</div></div>
+      <div class="rg"><div class="rb rgrid"><button type="button" class="rbtn radio" id="rbHaadf" aria-pressed="true">HAADF</button><span class="rbtn radio off">DF4</span><button type="button" class="rbtn radio" id="rbBall" aria-pressed="false" data-i="model"></button><span class="rbtn radio off">BF</span></div><div class="rl">Detectors</div></div>
+      <div class="rg"><div class="rb"><span class="rbtn off">↻ 0.0°</span></div><div class="rl g">Scan Rotation</div></div>
+      <div class="rg"><div class="rb"><button type="button" class="rbtn" id="rbReset" data-i="reset"></button><span class="rbtn off">720 × 720</span></div><div class="rl g">STEM Imaging</div></div>
+      <div class="rg"><div class="rb"><button type="button" class="rbtn acq" id="rbFire" data-i="fire"></button></div><div class="rl g">Acquire</div></div>
+    </div>
+    <div class="lab">
+      <div class="viewer">
+        <div class="vtab" id="vtab"></div>
+        <div class="viewbar">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="ghost" id="backBtn" data-i="back"></button>
+            <h2 id="sampleTitle"></h2>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="seg" role="group" id="viewSeg">
+              <button id="modeHaadf" aria-pressed="true">HAADF</button>
+              <button id="modeBall" aria-pressed="false" data-i="model"></button>
+            </div>
+            <button class="ghost" id="resetBtn" data-i="reset"></button>
+          </div>
+        </div>
+        <div class="screen" id="screen">
+          <canvas id="cv" width="720" height="720"></canvas>
+          <div class="hud" id="hudL"></div>
+          <div class="hud r" id="hudR"></div>
+          <div class="scalebar" id="scalebar"><i></i>5 Å</div>
+          <div class="toast" id="toast" style="opacity:0"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <aside class="panel">
+        <div class="wtabs" aria-hidden="true"><span>Setup</span><span>Align</span><span>Tune</span><span class="on">Stem</span><span>Expe</span></div>
+        <div class="sect">
+          <div class="label" data-i="targetLabel"></div>
+          <div class="target" id="targetBox"></div>
+        </div>
+        <div class="sect" id="controls"></div>
+        <div class="sect">
+          <div class="label" data-i="physLabel"></div>
+          <div class="gauge">
+            <div class="cap"><span data-ih="emaxTransf"></span><span id="gaugeTxt"></span></div>
+            <div class="track"><div class="fill" id="gFill"></div><div class="thr" id="gThr"></div></div>
+            <div class="cap"><span>0 eV</span><span id="gMax"></span></div>
+          </div>
+          <div class="readouts" id="readouts"></div>
+          <div class="prob">
+            <div class="big" id="pBig">—</div>
+            <div class="txt" data-i="pTxt"></div>
+          </div>
+        </div>
+        <button class="fire" id="fireBtn" data-i="fire"></button>
+        <div class="sect" style="border-top:0;padding-top:0">
+          <div class="result neutral" id="result"></div>
+        </div>
+      </aside>
+    </div>
+    <div class="vstrip" id="vstrip"></div>
+    <div class="status" id="status"></div>
+
+    <div class="side">
+      <div class="wtabs" aria-hidden="true"><span>Camera</span><span class="on">Stem</span><span>Search</span><span>Tune</span><span>Align</span></div>
+      <div class="card histcard"><div class="label">Histogram</div><canvas class="hist" width="320" height="64"></canvas></div>
+      <div class="card">
+        <div class="label" data-i="missionsLabel"></div>
+        <ul class="missions" id="missions"></ul>
+      </div>
+      <div class="card">
+        <div class="label" data-i="logLabel"></div>
+        <div class="log" id="log"></div>
+      </div>
+    <details class="model">
+      <summary data-i="modelSummary"></summary>
+      <div class="cols">
+        <div>
+          <p data-ih="m1"></p>
+          <div class="eq">E<sub>max</sub> = 2E(E + 2m₀c²) / (Mc²)</div>
+          <p data-ih="m2"></p>
+          <div class="eq">E<sub>max</sub>(v) ≈ E<sub>max</sub> + 2·(pc)·(v/c),  pc = √(E(E+2m₀c²))</div>
+          <p data-ih="m3"></p>
+        </div>
+        <div>
+          <p data-ih="m4"></p>
+          <div class="eq">σ = 4πa₀²Z²(E<sub>R</sub>/m₀c²)²·(1−β²)/β⁴ ·
+    [ (x−1) − β² ln x + πZαβ(2√x − ln x − 2) ],  x = T<sub>m</sub>/E<sub>d</sub></div>
+          <p data-ih="m5"></p>
+          <div class="eq">D(r) = (I·t/e)·p<sub>Airy</sub>(r)
+P = 1 − e<sup>−σD</sup>
+P(S₂ → 0) = 1 − e<sup>−σD</sup>(1 + σD)</div>
+        </div>
+        <div>
+          <div class="tbl"><table>
+            <thead id="elemHead"></thead>
+            <tbody id="elemTable"></tbody>
+          </table></div>
+          <p style="margin-top:10px;color:var(--muted);font-size:13px" data-ih="m6"></p>
+        </div>
+      </div>
+    </details>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>© 2026 Luis E. Piedra Marin</span>
+    <a href="https://github.com/LuiStone96/knockon-lab/blob/main/LICENSE" target="_blank" rel="noopener" data-i="license"></a>
+    <a href="https://github.com/LuiStone96/knockon-lab" target="_blank" rel="noopener" data-i="source"></a>
+    <a href="https://doi.org/10.5281/zenodo.23105637" target="_blank" rel="noopener">DOI 10.5281/zenodo.23105637</a>
+    <span class="nonaff" data-i="nonAffil"></span>
+  </footer>
+</div>
+
+<svg class="tutarrow" id="tutArrow" hidden viewBox="0 0 44 60" aria-hidden="true"><path d="M22 2 L40 24 H29 V58 H15 V24 H4 Z" fill="#f3a83b" stroke="#1a1205" stroke-width="2" stroke-linejoin="round"/></svg>
+<div class="tut" id="tut" hidden role="dialog" aria-live="polite" aria-labelledby="tutTitle">
+  <div class="tut-step" id="tutStep"></div>
+  <div class="tut-title" id="tutTitle"></div>
+  <div class="tut-text" id="tutText"></div>
+  <div class="tut-hint" id="tutHint"></div>
+  <div class="tut-btns"><button type="button" class="tut-skip" id="tutSkip"></button><span style="flex:1"></span><button type="button" class="ghost" id="tutBack"></button><button type="button" class="tut-next" id="tutNext"></button></div>
+</div>
+
+<script>
+(() => {
+"use strict";
+// ======================= I18N =======================
+// ======================= I18N (v1.1 interface + tutorial) =======================
+const UI = {
+es:{
+  ifaceLabel:"Interfaz", tutBtn:"Tutorial", ctrlLabel:"Parámetros del haz",
+  nonAffil:"Los diseños estilo TIA y Velox imitan el aspecto del software de microscopía electrónica con fines docentes. Knock-on Lab no está afiliado a Thermo Fisher Scientific ni cuenta con su respaldo; TIA y Velox son marcas suyas.",
+  welcome:"Bienvenido a Knock-on Lab",
+  introTut:"El tutorial te guiará paso a paso en tu primera exposición. Puedes saltarlo cuando quieras y repetirlo después con el botón Tutorial.",
+  startNext:"Siguiente",
+  startSkip:"Saltar el tutorial",
+  pickSample:"Elige una muestra 2D",
+  ifaceNames:{classic:"Knock-on Lab",tia:"Estilo TIA",velox:"Estilo Velox"},
+  tut:{
+    stepOf:(i,n)=>`Paso ${i} de ${n}`, next:"Siguiente", back:"Atrás", skip:"Saltar tutorial", finish:"Terminar",
+    hint:{sample:"Haz clic en una muestra para continuar.", atom:"Haz clic en un átomo para continuar.", fire:"Pulsa el botón para continuar."},
+    kvTarget:(el,thr)=> thr>300 ? ` Tu objetivo (${el}) necesitaría unos ${thr} kV, muy por encima de los 300 kV que alcanza este microscopio.`
+      : ` Para tu objetivo (${el}) el umbral está en unos ${thr} kV; las vibraciones de la red y, en hBN y MoS₂, la excitación electrónica le permiten salir algo por debajo.`,
+    steps:{
+      iface:["Elige el software de interfaz",()=>"Primero, elige cómo se ve el microscopio. <b>Lab</b> es la consola propia del juego; <b>TIA</b> y <b>Velox</b> imitan el aspecto del software de control de microscopios electrónicos reales. La física es la misma en las tres. Elígela en el selector que señala la flecha, arriba; puedes cambiarla allí en cualquier momento. Luego pulsa Siguiente."],
+      sample:["Elige una muestra 2D",()=>"Cada muestra es un cristal de un solo átomo de espesor. El grafeno solo tiene carbono; el hBN tiene dos tipos de átomos, boro y nitrógeno; el MoS₂ tiene molibdeno, pesado, y azufre, ligero. Haz clic en una tarjeta para cargarla en el microscopio."],
+      atom:["Coloca la sonda sobre un átomo",()=>"Esta es una imagen HAADF-STEM simulada: cada punto brillante es un átomo, y los átomos más pesados se ven más brillantes. Haz clic sobre un átomo para dejar la sonda de electrones fija en él. El círculo naranja marca dónde está la sonda."],
+      kV:["Voltaje de aceleración",c=>`El voltaje fija la energía de cada electrón. Un electrón más rápido da un golpe más fuerte al núcleo con el que choca: ese golpe es E<sub>max</sub>, la barra de <b>${c.T.physLabel}</b>. Cuando supera el umbral de desplazamiento E<sub>d</sub> (la línea vertical), el átomo puede salir expulsado. Los átomos ligeros se expulsan más fácilmente.${c.kv}`],
+      I:["Corriente de sonda",()=>"La corriente es el número de electrones que envía la sonda cada segundo: 1 pA son unos 6 millones de electrones por segundo. No cambia la energía de cada electrón, solo cuántos llegan. Más electrones significa más oportunidades de expulsar el átomo."],
+      t:["Tiempo de exposición",()=>"Cuánto tiempo se queda la sonda fija sobre el átomo. Corriente × tiempo da el número total de electrones y, repartidos sobre la sonda, la dosis sobre el átomo (e⁻/Å²). La probabilidad es P = 1 − e<sup>−σ·dosis</sup>: duplicar la dosis no duplica P, la acerca al 100 %."],
+      alpha:["Semiángulo de convergencia",c=>`Es la mitad del ángulo del cono de electrones que se enfoca sobre la muestra. Un ángulo mayor da una sonda más pequeña, así que caen más electrones sobre el átomo objetivo y menos sobre sus vecinos. Mira <b>${c.T.ro[4]}</b> mientras lo cambias.`],
+      fire:["Expón el haz",c=>`Revisa la probabilidad P y pulsa <b>${c.T.fire}</b>. El knock-on es aleatorio: incluso con P = 50 % el átomo sobrevive la mitad de las veces.`],
+      result:["Lee el resultado",c=>`El mensaje explica qué pasó y por qué, y el registro guarda todas las exposiciones. Los <b>${c.T.missionsLabel}</b> son objetivos para probar después: cada uno es una regla que usan los microscopistas.`],
+      view:["Imagen o modelo",c=>`<b>HAADF</b> muestra la imagen simulada del microscopio; <b>${c.T.model}</b> muestra los átomos como esferas, y los que has expulsado aparecen marcados con un círculo rojo discontinuo. Puedes cambiar de vista en cualquier momento.`],
+      reset:["Restaurar la red",c=>`<b>${c.T.reset}</b> devuelve a su sitio todos los átomos que has expulsado, para empezar de nuevo con la misma muestra. Los retos completados y el registro se conservan.`],
+      back:["Cambiar de muestra",c=>`<b>${c.T.back}</b> te lleva de vuelta a las tarjetas de muestras. Cada muestra tiene sus propios retos y su propio registro.`],
+      restart:["Reiniciar el juego",c=>`<b>${c.T.restart}</b> borra todo (redes, registro y retos) y te devuelve a la página de inicio. Hay que pulsarlo dos veces, para que no lo hagas sin querer. Puedes repetir este tutorial cuando quieras con el botón <b>${c.T.tutBtn}</b>.`],
+    },
+  },
+},
+en:{
+  ifaceLabel:"Interface", tutBtn:"Tutorial", ctrlLabel:"Beam settings",
+  nonAffil:"The TIA- and Velox-style layouts imitate the look of electron-microscope software for teaching. Knock-on Lab is not affiliated with or endorsed by Thermo Fisher Scientific; TIA and Velox are its trademarks.",
+  welcome:"Welcome to Knock-on Lab",
+  introTut:"The tutorial will guide you step by step through your first exposure. You can skip it at any time and repeat it later with the Tutorial button.",
+  startNext:"Next",
+  startSkip:"Skip the tutorial",
+  pickSample:"Pick a 2D sample",
+  ifaceNames:{classic:"Knock-on Lab",tia:"TIA style",velox:"Velox style"},
+  tut:{
+    stepOf:(i,n)=>`Step ${i} of ${n}`, next:"Next", back:"Back", skip:"Skip tutorial", finish:"Finish",
+    hint:{sample:"Click a sample to continue.", atom:"Click an atom to continue.", fire:"Press the button to continue."},
+    kvTarget:(el,thr)=> thr>300 ? ` Your target (${el}) would need about ${thr} kV, far above the 300 kV this microscope can reach.`
+      : ` For your target (${el}) the threshold is about ${thr} kV; lattice vibrations and, in hBN and MoS₂, electronic excitation let it leave a little below that.`,
+    steps:{
+      iface:["Choose the interface software",()=>"First, choose how the microscope looks. <b>Lab</b> is the game's own console; <b>TIA</b> and <b>Velox</b> imitate the look of the control software of real electron microscopes. The physics is the same in all three. Pick one in the selector the arrow points to, at the top; you can change it there at any time. Then press Next."],
+      sample:["Choose a 2D sample",()=>"Each sample is a crystal only one atom thick. Graphene has only carbon; hBN has two kinds of atoms, boron and nitrogen; MoS₂ has heavy molybdenum and light sulfur. Click a card to load it into the microscope."],
+      atom:["Park the probe on an atom",()=>"This is a simulated HAADF-STEM image: each bright spot is an atom, and heavier atoms look brighter. Click on an atom to park the electron probe on it. The orange circle shows where the probe is."],
+      kV:["Accelerating voltage",c=>`The voltage sets the energy of each electron. A faster electron gives a harder kick to the nucleus it hits: that kick is E<sub>max</sub>, the bar under <b>${c.T.physLabel}</b>. When it passes the displacement threshold E<sub>d</sub> (the vertical line), the atom can be knocked out. Light atoms are easier to knock out.${c.kv}`],
+      I:["Probe current",()=>"The current is the number of electrons the probe sends every second: 1 pA is about 6 million electrons per second. It does not change the energy of each electron, only how many arrive. More electrons means more chances to knock the atom out."],
+      t:["Exposure time",()=>"How long the probe stays parked on the atom. Current × time gives the total number of electrons and, spread over the probe, the dose on the atom (e⁻/Å²). The probability is P = 1 − e<sup>−σ·dose</sup>: doubling the dose does not double P, it brings it closer to 100 %."],
+      alpha:["Convergence semi-angle",c=>`The half-angle of the cone of electrons focused onto the sample. A larger angle gives a smaller probe, so more electrons land on the target atom and fewer on its neighbours. Watch <b>${c.T.ro[4]}</b> as you change it.`],
+      fire:["Fire the beam",c=>`Check the probability P, then press <b>${c.T.fire}</b>. Knock-on is random: even with P = 50 % the atom survives half of the time.`],
+      result:["Read the result",c=>`The message explains what happened and why, and the log keeps every exposure. The <b>${c.T.missionsLabel}</b> are goals to try next: each one is a rule that microscopists use.`],
+      view:["Image or model",c=>`<b>HAADF</b> shows the simulated microscope image; <b>${c.T.model}</b> shows the atoms as balls, and the ones you have knocked out are marked with a dashed red circle. You can switch views at any time.`],
+      reset:["Restore the lattice",c=>`<b>${c.T.reset}</b> puts back every atom you have knocked out, so you can start again with the same sample. Completed challenges and the log are kept.`],
+      back:["Change sample",c=>`<b>${c.T.back}</b> takes you back to the sample cards. Each sample has its own challenges and its own log.`],
+      restart:["Restart the game",c=>`<b>${c.T.restart}</b> erases everything (lattices, log and challenges) and takes you back to the start page. You have to press it twice, so you don't do it by accident. You can repeat this tutorial at any time with the <b>${c.T.tutBtn}</b> button.`],
+    },
+  },
+},
+pt:{
+  ifaceLabel:"Interface", tutBtn:"Tutorial", ctrlLabel:"Parâmetros do feixe",
+  nonAffil:"Os layouts estilo TIA e Velox imitam o aspeto do software de microscopia eletrónica para fins de ensino. O Knock-on Lab não é afiliado nem apoiado pela Thermo Fisher Scientific; TIA e Velox são marcas suas.",
+  welcome:"Bem-vindo ao Knock-on Lab",
+  introTut:"O tutorial guia-te passo a passo na tua primeira exposição. Podes saltá-lo quando quiseres e repeti-lo depois com o botão Tutorial.",
+  startNext:"Seguinte",
+  startSkip:"Saltar o tutorial",
+  pickSample:"Escolhe uma amostra 2D",
+  ifaceNames:{classic:"Knock-on Lab",tia:"Estilo TIA",velox:"Estilo Velox"},
+  tut:{
+    stepOf:(i,n)=>`Passo ${i} de ${n}`, next:"Seguinte", back:"Anterior", skip:"Saltar tutorial", finish:"Terminar",
+    hint:{sample:"Clica numa amostra para continuar.", atom:"Clica num átomo para continuar.", fire:"Carrega no botão para continuar."},
+    kvTarget:(el,thr)=> thr>300 ? ` O teu alvo (${el}) precisaria de cerca de ${thr} kV, muito acima dos 300 kV que este microscópio atinge.`
+      : ` Para o teu alvo (${el}) o limiar fica em cerca de ${thr} kV; as vibrações da rede e, no hBN e no MoS₂, a excitação eletrónica permitem-lhe sair um pouco abaixo disso.`,
+    steps:{
+      iface:["Escolhe o software de interface",()=>"Primeiro, escolhe o aspeto do microscópio. <b>Lab</b> é a consola própria do jogo; <b>TIA</b> e <b>Velox</b> imitam o aspeto do software de controlo de microscópios eletrónicos reais. A física é a mesma nas três. Escolhe-a no seletor que a seta indica, lá em cima; podes mudá-la aí a qualquer momento. Depois carrega em Seguinte."],
+      sample:["Escolhe uma amostra 2D",()=>"Cada amostra é um cristal com a espessura de um só átomo. O grafeno só tem carbono; o hBN tem dois tipos de átomos, boro e azoto; o MoS₂ tem molibdénio, pesado, e enxofre, leve. Clica num cartão para o carregar no microscópio."],
+      atom:["Coloca a sonda sobre um átomo",()=>"Esta é uma imagem HAADF-STEM simulada: cada ponto brilhante é um átomo, e os átomos mais pesados aparecem mais brilhantes. Clica num átomo para deixar a sonda de eletrões parada sobre ele. O círculo laranja mostra onde está a sonda."],
+      kV:["Tensão de aceleração",c=>`A tensão define a energia de cada eletrão. Um eletrão mais rápido dá um empurrão mais forte ao núcleo em que bate: esse empurrão é E<sub>max</sub>, a barra em <b>${c.T.physLabel}</b>. Quando passa o limiar de deslocamento E<sub>d</sub> (a linha vertical), o átomo pode ser ejetado. Os átomos leves são ejetados mais facilmente.${c.kv}`],
+      I:["Corrente da sonda",()=>"A corrente é o número de eletrões que a sonda envia por segundo: 1 pA são cerca de 6 milhões de eletrões por segundo. Não muda a energia de cada eletrão, só quantos chegam. Mais eletrões significa mais oportunidades de ejetar o átomo."],
+      t:["Tempo de exposição",()=>"Quanto tempo a sonda fica parada sobre o átomo. Corrente × tempo dá o número total de eletrões e, distribuídos pela sonda, a dose no átomo (e⁻/Å²). A probabilidade é P = 1 − e<sup>−σ·dose</sup>: duplicar a dose não duplica P, aproxima-a dos 100 %."],
+      alpha:["Semiângulo de convergência",c=>`É metade do ângulo do cone de eletrões focado sobre a amostra. Um ângulo maior dá uma sonda mais pequena, por isso caem mais eletrões sobre o átomo alvo e menos sobre os vizinhos. Observa <b>${c.T.ro[4]}</b> enquanto o mudas.`],
+      fire:["Expõe o feixe",c=>`Verifica a probabilidade P e carrega em <b>${c.T.fire}</b>. O knock-on é aleatório: mesmo com P = 50 % o átomo sobrevive metade das vezes.`],
+      result:["Lê o resultado",c=>`A mensagem explica o que aconteceu e porquê, e o registo guarda todas as exposições. Os <b>${c.T.missionsLabel}</b> são objetivos para experimentares a seguir: cada um é uma regra usada pelos microscopistas.`],
+      view:["Imagem ou modelo",c=>`<b>HAADF</b> mostra a imagem simulada do microscópio; <b>${c.T.model}</b> mostra os átomos como esferas, e os que ejetaste aparecem marcados com um círculo vermelho tracejado. Podes mudar de vista a qualquer momento.`],
+      reset:["Restaurar a rede",c=>`<b>${c.T.reset}</b> repõe todos os átomos que ejetaste, para recomeçares com a mesma amostra. Os desafios concluídos e o registo mantêm-se.`],
+      back:["Mudar de amostra",c=>`<b>${c.T.back}</b> leva-te de volta aos cartões das amostras. Cada amostra tem os seus próprios desafios e o seu próprio registo.`],
+      restart:["Reiniciar o jogo",c=>`<b>${c.T.restart}</b> apaga tudo (redes, registo e desafios) e leva-te de volta à página inicial. É preciso carregar duas vezes, para não o fazeres sem querer. Podes repetir este tutorial quando quiseres com o botão <b>${c.T.tutBtn}</b>.`],
+    },
+  },
+},
+};
+const STR = {
+es:{
+  restart:"Reiniciar", restartConfirm:"¿Seguro? Pulsa otra vez", restarted:"Juego reiniciado.", sub:"Simulador de sputtering por haz en STEM · grafeno · hBN · MoS₂", langLabel:"Idioma", license:"Licencia de uso no comercial (PolyForm NC 1.0.0)", source:"Código fuente", ...UI.es,
+  intro:"Elige una muestra 2D. En el microscopio podrás <b>colocar la sonda sobre un átomo</b>, escoger <b>voltaje, corriente, tiempo de exposición y ángulo de convergencia</b> y disparar el haz. La expulsión del átomo se decide con el modelo de desplazamiento por impacto elástico (knock-on) de McKinley–Feshbach, incluyendo las vibraciones de punto cero de la red, más un canal de excitación electrónica que baja el umbral de desplazamiento de los átomos bajo la sonda.",
+  back:"← Cambiar muestra", model:"Modelo", reset:"Restaurar red", canvasAria:"Red atómica. Haz clic para colocar la sonda.",
+  targetLabel:"Objetivo de la sonda", physLabel:"Física del objetivo", emaxTransf:"E<sub>max</sub> transferida", thrTitle:"Umbral de desplazamiento E_d",
+  pTxt:"Probabilidad de expulsar el átomo objetivo en esta exposición", fire:"Exponer haz",
+  resultInit:"Haz clic sobre un átomo para colocar la sonda (modo spot). Luego ajusta los parámetros y expón.", restored:"Red restaurada.",
+  missionsLabel:"Retos de la muestra", logLabel:"Registro de exposiciones", logEmpty:"Aún no hay exposiciones.",
+  logHead:["#","Obj.","kV","pA","t","α","Dosis e⁻/Å²","P","Resultado"], ejectedW:"expulsado", intactW:"intacto",
+  modelSummary:"Modelo físico y supuestos",
+  m1:"<b>Energía máxima transferida</b> a un núcleo en reposo por un electrón de energía E (colisión frontal, relativista):",
+  m2:"Si el átomo vibra con velocidad v a lo largo del haz, la transferencia cambia linealmente (Meyer et al. 2012):",
+  m3:"v sigue una gaussiana con ½M⟨v²⟩ = ½⟨E<sub>fonón</sub>⟩, calculada con un modelo de Debye a 300 K (incluye energía de punto cero).",
+  m4:"<b>Sección eficaz</b> de McKinley–Feshbach para T<sub>m</sub> &gt; E<sub>d</sub>, promediada sobre la distribución de v:",
+  m5:"<b>Sonda</b>: el juego usa dos descripciones de la misma sonda, cada una para una cosa. <i>Dosis</i>: perfil de óptica de ondas de una apertura de semiángulo α sin aberraciones (disco de Airy con sus anillos), promediado sobre la dispersión focal cromática (C<sub>c</sub> = 1.2 mm, ΔE = 0.8 eV) y convolucionado con una fuente de 0.5 Å; coincide con la sonda abTEM del artículo en unos pocos %. Su pico central fija la dosis sobre el átomo apuntado y sus colas la dosis sobre todos los átomos a menos de 10 Å, mucho mayor que la que daría una gaussiana. <i>Imagen</i>: la imagen HAADF se dibuja con una gaussiana de FWHM² = (0.51λ/α)² + (0.5 Å)² + (0.2·C<sub>c</sub>·ΔE/E·α)², que no interviene en la dosis. En una columna S₂ los dos S salen uno tras otro (proceso de Poisson).",
+  m6:"<b>Excitación electrónica</b>: el electrón de la sonda puede ionizar o excitar el átomo por el que pasa, con probabilidad P(E) que sigue la sección de Bethe (Kretschmer et al. 2020; Speckmann et al. 2023; Bui et al. 2023). Si el mismo electrón que excita el átomo le transfiere impulso y la excitación sobrevive mientras el núcleo sale, el umbral es E<sub>d</sub><sup>*</sup> en lugar de E<sub>d</sub>; P<sub>i</sub> es una probabilidad por electrón incidente, así que el resultado depende de la dosis y no de la corriente: σ = (1−ΣP<sub>i</sub>)·σ(E<sub>d</sub>) + ΣP<sub>i</sub>·σ(E<sub>d</sub><sup>*</sup>,i). Como la excitación la crean los electrones del haz, sigue el perfil de la sonda: el haz parqueado facilita expulsar los átomos que tiene debajo y cerca. P y E<sub>d</sub><sup>*</sup> están ajustados a secciones eficaces medidas en hBN y MoS₂; en grafeno las excitaciones se apagan en femtosegundos y no hay canal de excitación. No se incluyen el grabado químico ni el E<sub>d</sub> menor de átomos junto a una vacancia. En MoS₂ sale primero el S de la superficie de salida; mientras está, el S superior es empujado hacia la red. Los valores de θ<sub>D</sub> son efectivos y aproximados. Las aberraciones residuales de un microscopio real añadirían aún más cola.",
+  elemHead:["Átomo","Z","E<sub>d</sub> (eV)","θ<sub>D</sub> (K)","Fuente E<sub>d</sub>"], moRef:"estimación (≫ E<sub>max</sub> a 300 kV)",
+  ctrl:{kV:"Voltaje de aceleración",I:"Corriente de sonda",t:"Tiempo de exposición (spot)",alpha:"Semiángulo de convergencia"}, hintKV:"Themis 60–300 kV",
+  hudFov:"FOV", hudProbe:"sonda FWHM",
+  noProbe:"Sin sonda. Haz clic en la imagen.", between:"Entre átomos", betweenSub:"solo dosis de cola sobre vecinos",
+  vacancy:"Vacancia", vacancySub:"La columna ya está vacía", column:n=>`columna ${n}×S`,
+  sExit:"S de la cara de salida", sEntry:"S de entrada (protegido mientras exista el S inferior)", sLast:"S restante: la columna está libre por debajo", inSpot:"átomo en spot",
+  ro:["Electrones totales","Dosis en el objetivo","σ total (300 K)","Umbral (v=0) en kV","Vecinos desplazados (valor esperado)","Tasa de dosis"], atoms:"átomos",
+  legendThr:"umbral", legendZ:"Intensidad HAADF ∝ Z<sup>1.7</sup>",
+  notOnAtom:"La sonda no estaba sobre un átomo.", onVac:"La sonda está sobre una vacancia: la columna ya está vacía.", tail:n=>`Aun así la cola del haz expulsó ${n} átomo(s).`, nothing:"No se expulsó nada.",
+  sEntryNo:"<b>Sin efecto sobre el S de entrada.</b> Mientras exista el S inferior, el impulso empuja este S hacia la capa de Mo, no fuera del cristal. Expulsa primero el S de salida.",
+  cantEject:"<b>No se puede expulsar.</b>",
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>¡${el} expulsado!</b> E<sub>max</sub> = ${Em} eV frente a E<sub>d</sub> = ${Ed} eV, σ = ${sig}, dosis ${D} e⁻/Å² → P = ${P}.`,
+  colEmpty2:" <b>Columna S₂ vacía:</b> divacancia de S.", colEmpty:" <b>Columna S₂ vacía:</b> también salió el segundo S.", lastS:" Queda 1 S en la columna: ahora también puede expulsarse.",
+  collat:n=>` <span style="color:var(--bad)">Daño colateral: ${n} átomo(s) vecino(s). Prueba una sonda más fina (α mayor) o menos dosis.</span>`,
+  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E<sub>max</sub> = ${Em} eV es muy inferior a E<sub>d</sub> = ${Ed} eV; ni las vibraciones de punto cero alcanzan el umbral, así que σ = 0. `,
+  excNote:" <i>E<sub>max</sub> está por debajo de E<sub>d</sub>: la sonda excitó electrónicamente el átomo y le bajó el umbral, por eso pudo salir.</i>", moNever:"El Mo no puede expulsarse con ningún voltaje del Themis.", raiseKV:"Sube el voltaje.",
+  intactLow:(el,sig,D,P)=>`<b>${el} intacto.</b> σ = ${sig} con ${D} e⁻/Å² da solo P = ${P}. Aumenta el voltaje o la dosis (corriente × tiempo).`,
+  survived:(el,P)=>`<b>${el} sobrevivió esta vez.</b> P era ${P}: el sputtering es estocástico. Vuelve a exponer o sube la dosis.`,
+  butNb:n=>` <span style="color:var(--bad)">Pero se expulsaron ${n} vecino(s).</span>`,
+  tEjected:el=>`${el} expulsado`, tN:n=>`${n} átomo(s) expulsado(s)`, tNone:"Sin expulsión", tMission:m=>`Reto completado: ${m}`,
+  mat:{
+    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocapa de carbono en red de panal. Muy estable a 80 kV: con E<sub>d</sub> ≈ 21 eV el umbral estático ronda los 105 kV, y las vibraciones lo adelantan un poco."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitruro de boro hexagonal. Entre 100 y 120 kV el boro, más ligero, se expulsa unas 4–10 veces más fácil que el nitrógeno. Por debajo de 90 kV ambos se pierden por excitación electrónica a un ritmo parecido."},
+    mos2:{name:"MoS₂",bond:"Mo–S proy. 1.82 Å",blurb:"Monocapa 2H vista en [001]: columnas de Mo y columnas de 2 S superpuestos. Puedes vaciar una columna S₂ átomo por átomo."},
+  },
+  missions:{
+    g1:["Estabilidad a 80 kV","Expón un C a 80 kV con ≥ 10⁸ e⁻/Å² sin expulsarlo. Por eso se trabaja a 80 kV."],
+    g2:["Primera monovacancia","Expulsa un C sin dañar ningún vecino."],
+    g3:["Cerca del umbral","Crea una vacancia a 100 kV o menos."],
+    h1:["Sputtering selectivo","Expulsa un B a 100 kV o menos."],
+    h2:["El nitrógeno resiste","Expón un N a 100 kV con ≥ 10⁸ e⁻/Å² y que sobreviva."],
+    h3:["Vacancia de N","Encuentra el voltaje necesario para expulsar un N."],
+    m1:["Vacancia de azufre","Expulsa el S de la cara de salida de una columna S₂."],
+    m2:["A 80 kV también","Crea una vacancia de S a 80 kV o menos."],
+    m4:["Divacancia de S","Vacía por completo una columna S₂ (los dos átomos de S)."],
+    m3:["El Mo es inamovible","Expón un Mo a 300 kV con ≥ 10⁸ e⁻/Å² y comprueba que no se mueve."],
+  },
+},
+en:{
+  restart:"Restart", restartConfirm:"Sure? Click again", restarted:"Game restarted.", sub:"STEM beam-sputtering simulator · graphene · hBN · MoS₂", langLabel:"Language", license:"Noncommercial license (PolyForm NC 1.0.0)", source:"Source code", ...UI.en,
+  intro:"Pick a 2D sample. At the microscope you can <b>park the probe on an atom</b>, choose <b>accelerating voltage, current, exposure time and convergence angle</b>, and fire the beam. Whether the atom is ejected is decided by the McKinley–Feshbach elastic knock-on displacement model, including the zero-point vibrations of the lattice, plus an electronic-excitation channel that lowers the displacement threshold of the atoms under the probe.",
+  back:"← Change sample", model:"Model", reset:"Restore lattice", canvasAria:"Atomic lattice. Click to place the probe.",
+  targetLabel:"Probe target", physLabel:"Target physics", emaxTransf:"Transferred E<sub>max</sub>", thrTitle:"Displacement threshold E_d",
+  pTxt:"Probability of ejecting the target atom in this exposure", fire:"Fire beam",
+  resultInit:"Click an atom to place the probe (spot mode). Then set the parameters and expose.", restored:"Lattice restored.",
+  missionsLabel:"Sample challenges", logLabel:"Exposure log", logEmpty:"No exposures yet.",
+  logHead:["#","Target","kV","pA","t","α","Dose e⁻/Å²","P","Result"], ejectedW:"ejected", intactW:"intact",
+  modelSummary:"Physical model and assumptions",
+  m1:"<b>Maximum energy transferred</b> to a nucleus at rest by an electron of energy E (head-on, relativistic):",
+  m2:"If the atom vibrates with velocity v along the beam, the transfer changes linearly (Meyer et al. 2012):",
+  m3:"v follows a Gaussian with ½M⟨v²⟩ = ½⟨E<sub>phonon</sub>⟩, computed from a Debye model at 300 K (zero-point energy included).",
+  m4:"McKinley–Feshbach <b>cross section</b> for T<sub>m</sub> &gt; E<sub>d</sub>, averaged over the v distribution:",
+  m5:"<b>Probe</b>: the game uses two descriptions of the same probe, each for one job. <i>Dose</i>: wave-optical profile of an aberration-free aperture of semi-angle α (Airy disc with its rings), averaged over the chromatic focal spread (C<sub>c</sub> = 1.2 mm, ΔE = 0.8 eV) and convolved with a 0.5 Å source; it agrees with the abTEM probe of the paper to within a few %. Its central peak sets the dose on the targeted atom and its tails the dose on every atom within 10 Å, far more than a Gaussian would give them. <i>Image</i>: the HAADF image is drawn with a Gaussian of FWHM² = (0.51λ/α)² + (0.5 Å)² + (0.2·C<sub>c</sub>·ΔE/E·α)², which plays no part in the dose. In an S₂ column the two S atoms leave one after the other (Poisson process).",
+  m6:"<b>Electronic excitation</b>: the probe electron can ionise or excite the atom it passes, with a probability P(E) that follows the Bethe cross section (Kretschmer et al. 2020; Speckmann et al. 2023; Bui et al. 2023). If the electron that excites the atom also transfers momentum to it, and the excitation survives while the nucleus leaves, the threshold is E<sub>d</sub><sup>*</sup> instead of E<sub>d</sub>; P<sub>i</sub> is a probability per incident electron, so the outcome depends on dose, not on current: σ = (1−ΣP<sub>i</sub>)·σ(E<sub>d</sub>) + ΣP<sub>i</sub>·σ(E<sub>d</sub><sup>*</sup>,i). The excitation is made by the beam electrons, so it follows the probe profile: a parked beam makes it easier to eject the atoms under and near it. P and E<sub>d</sub><sup>*</sup> are fitted to measured cross sections of hBN and MoS₂; in graphene excitations decay within femtoseconds and there is no excitation channel. Chemical etching and the lower E<sub>d</sub> of atoms next to a vacancy are not included. In MoS₂ the S on the beam-exit surface goes first; while it is there, the top S is pushed into the lattice. θ<sub>D</sub> values are approximate effective values. Residual aberrations of a real microscope would add even more tail.",
+  elemHead:["Atom","Z","E<sub>d</sub> (eV)","θ<sub>D</sub> (K)","E<sub>d</sub> source"], moRef:"estimate (≫ E<sub>max</sub> at 300 kV)",
+  ctrl:{kV:"Accelerating voltage",I:"Probe current",t:"Exposure time (spot)",alpha:"Convergence semi-angle"}, hintKV:"Themis 60–300 kV",
+  hudFov:"FOV", hudProbe:"probe FWHM",
+  noProbe:"No probe. Click the image.", between:"Between atoms", betweenSub:"only tail dose on neighbours",
+  vacancy:"Vacancy", vacancySub:"The column is already empty", column:n=>`column ${n}×S`,
+  sExit:"S on the exit surface", sEntry:"Entrance S (shielded while the bottom S is present)", sLast:"Remaining S: the column is open below", inSpot:"atom in spot",
+  ro:["Total electrons","Dose on target","Total σ (300 K)","Threshold (v=0) in kV","Expected displaced neighbours","Dose rate"], atoms:"atoms",
+  legendThr:"threshold", legendZ:"HAADF intensity ∝ Z<sup>1.7</sup>",
+  notOnAtom:"The probe was not on an atom.", onVac:"The probe is on a vacancy: the column is already empty.", tail:n=>`Even so, the beam tail ejected ${n} atom(s).`, nothing:"Nothing was ejected.",
+  sEntryNo:"<b>No effect on the entrance S.</b> While the bottom S is present, the momentum pushes this S towards the Mo layer, not out of the crystal. Eject the exit-surface S first.",
+  cantEject:"<b>Cannot be ejected.</b>",
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejected!</b> E<sub>max</sub> = ${Em} eV vs E<sub>d</sub> = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
+  colEmpty2:" <b>S₂ column emptied:</b> S divacancy.", colEmpty:" <b>S₂ column emptied:</b> the second S left too.", lastS:" 1 S remains in the column: it can now be ejected too.",
+  collat:n=>` <span style="color:var(--bad)">Collateral damage: ${n} neighbouring atom(s). Try a finer probe (larger α) or less dose.</span>`,
+  intactZero:(el,Em,Ed)=>`<b>${el} intact.</b> E<sub>max</sub> = ${Em} eV is far below E<sub>d</sub> = ${Ed} eV; not even zero-point vibrations reach the threshold, so σ = 0. `,
+  excNote:" <i>E<sub>max</sub> is below E<sub>d</sub>: the probe electronically excited the atom and lowered its threshold, so it could still leave.</i>", moNever:"Mo cannot be ejected at any Themis voltage.", raiseKV:"Raise the voltage.",
+  intactLow:(el,sig,D,P)=>`<b>${el} intact.</b> σ = ${sig} with ${D} e⁻/Å² gives only P = ${P}. Increase the voltage or the dose (current × time).`,
+  survived:(el,P)=>`<b>${el} survived this time.</b> P was ${P}: sputtering is stochastic. Expose again or raise the dose.`,
+  butNb:n=>` <span style="color:var(--bad)">But ${n} neighbour(s) were ejected.</span>`,
+  tEjected:el=>`${el} ejected`, tN:n=>`${n} atom(s) ejected`, tNone:"No ejection", tMission:m=>`Challenge completed: ${m}`,
+  mat:{
+    graphene:{name:"Graphene",bond:"C–C 1.42 Å",blurb:"Single carbon layer on a honeycomb lattice. Very stable at 80 kV: with E<sub>d</sub> ≈ 21 eV the static threshold is around 105 kV, and vibrations bring it down a little."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Hexagonal boron nitride. Between 100 and 120 kV the lighter boron is ejected about 4–10 times more easily than nitrogen. Below 90 kV both are lost through electronic excitation at a similar rate."},
+    mos2:{name:"MoS₂",bond:"Mo–S proj. 1.82 Å",blurb:"2H monolayer viewed along [001]: Mo columns and columns of 2 overlapping S. You can empty an S₂ column atom by atom."},
+  },
+  missions:{
+    g1:["Stable at 80 kV","Expose a C at 80 kV with ≥ 10⁸ e⁻/Å² without ejecting it. That is why we work at 80 kV."],
+    g2:["First monovacancy","Eject a C without damaging any neighbour."],
+    g3:["Near threshold","Create a vacancy at 100 kV or less."],
+    h1:["Selective sputtering","Eject a B at 100 kV or less."],
+    h2:["Nitrogen holds","Expose an N at 100 kV with ≥ 10⁸ e⁻/Å² and keep it in place."],
+    h3:["N vacancy","Find the voltage needed to eject an N."],
+    m1:["Sulfur vacancy","Eject the exit-surface S of an S₂ column."],
+    m2:["At 80 kV too","Create an S vacancy at 80 kV or less."],
+    m4:["S divacancy","Empty an S₂ column completely (both S atoms)."],
+    m3:["Mo won't budge","Expose a Mo at 300 kV with ≥ 10⁸ e⁻/Å² and check that it stays."],
+  },
+},
+pt:{
+  restart:"Reiniciar", restartConfirm:"Tens a certeza? Clica outra vez", restarted:"Jogo reiniciado.", sub:"Simulador de sputtering por feixe em STEM · grafeno · hBN · MoS₂", langLabel:"Idioma", license:"Licença de uso não comercial (PolyForm NC 1.0.0)", source:"Código-fonte", ...UI.pt,
+  intro:"Escolhe uma amostra 2D. No microscópio podes <b>colocar a sonda sobre um átomo</b>, escolher <b>tensão, corrente, tempo de exposição e ângulo de convergência</b> e disparar o feixe. A ejeção do átomo é decidida pelo modelo de deslocamento por impacto elástico (knock-on) de McKinley–Feshbach, incluindo as vibrações de ponto zero da rede, mais um canal de excitação eletrónica que baixa o limiar de deslocamento dos átomos sob a sonda.",
+  back:"← Mudar amostra", model:"Modelo", reset:"Restaurar rede", canvasAria:"Rede atómica. Clica para colocar a sonda.",
+  targetLabel:"Alvo da sonda", physLabel:"Física do alvo", emaxTransf:"E<sub>max</sub> transferida", thrTitle:"Limiar de deslocamento E_d",
+  pTxt:"Probabilidade de ejetar o átomo alvo nesta exposição", fire:"Expor feixe",
+  resultInit:"Clica num átomo para colocar a sonda (modo spot). Depois ajusta os parâmetros e expõe.", restored:"Rede restaurada.",
+  missionsLabel:"Desafios da amostra", logLabel:"Registo de exposições", logEmpty:"Ainda não há exposições.",
+  logHead:["#","Alvo","kV","pA","t","α","Dose e⁻/Å²","P","Resultado"], ejectedW:"ejetado", intactW:"intacto",
+  modelSummary:"Modelo físico e pressupostos",
+  m1:"<b>Energia máxima transferida</b> a um núcleo em repouso por um eletrão de energia E (colisão frontal, relativista):",
+  m2:"Se o átomo vibra com velocidade v ao longo do feixe, a transferência varia linearmente (Meyer et al. 2012):",
+  m3:"v segue uma gaussiana com ½M⟨v²⟩ = ½⟨E<sub>fonão</sub>⟩, calculada com um modelo de Debye a 300 K (inclui energia de ponto zero).",
+  m4:"<b>Secção eficaz</b> de McKinley–Feshbach para T<sub>m</sub> &gt; E<sub>d</sub>, média sobre a distribuição de v:",
+  m5:"<b>Sonda</b>: o jogo usa duas descrições da mesma sonda, cada uma para uma coisa. <i>Dose</i>: perfil de ótica ondulatória de uma abertura de semiângulo α sem aberrações (disco de Airy com os seus anéis), média sobre a dispersão focal cromática (C<sub>c</sub> = 1.2 mm, ΔE = 0.8 eV) e convoluída com uma fonte de 0.5 Å; coincide com a sonda abTEM do artigo em poucos %. O seu pico central fixa a dose no átomo visado e as suas caudas a dose em todos os átomos a menos de 10 Å, muito maior do que daria uma gaussiana. <i>Imagem</i>: a imagem HAADF é desenhada com uma gaussiana de FWHM² = (0.51λ/α)² + (0.5 Å)² + (0.2·C<sub>c</sub>·ΔE/E·α)², que não entra na dose. Numa coluna S₂ os dois S saem um a seguir ao outro (processo de Poisson).",
+  m6:"<b>Excitação eletrónica</b>: o eletrão da sonda pode ionizar ou excitar o átomo por onde passa, com probabilidade P(E) que segue a secção de Bethe (Kretschmer et al. 2020; Speckmann et al. 2023; Bui et al. 2023). Se o eletrão que excita o átomo também lhe transfere impulso, e a excitação sobrevive enquanto o núcleo sai, o limiar é E<sub>d</sub><sup>*</sup> em vez de E<sub>d</sub>; P<sub>i</sub> é uma probabilidade por eletrão incidente, por isso o resultado depende da dose e não da corrente: σ = (1−ΣP<sub>i</sub>)·σ(E<sub>d</sub>) + ΣP<sub>i</sub>·σ(E<sub>d</sub><sup>*</sup>,i). A excitação é criada pelos eletrões do feixe, por isso segue o perfil da sonda: o feixe estacionado facilita a ejeção dos átomos por baixo e perto dele. P e E<sub>d</sub><sup>*</sup> estão ajustados a secções eficazes medidas em hBN e MoS₂; no grafeno as excitações desaparecem em femtossegundos e não há canal de excitação. Não se incluem a gravação química nem o E<sub>d</sub> menor de átomos junto a uma lacuna. No MoS₂ sai primeiro o S da superfície de saída; enquanto lá está, o S superior é empurrado para a rede. Os valores de θ<sub>D</sub> são efetivos e aproximados. As aberrações residuais de um microscópio real acrescentariam ainda mais cauda.",
+  elemHead:["Átomo","Z","E<sub>d</sub> (eV)","θ<sub>D</sub> (K)","Fonte E<sub>d</sub>"], moRef:"estimativa (≫ E<sub>max</sub> a 300 kV)",
+  ctrl:{kV:"Tensão de aceleração",I:"Corrente da sonda",t:"Tempo de exposição (spot)",alpha:"Semiângulo de convergência"}, hintKV:"Themis 60–300 kV",
+  hudFov:"FOV", hudProbe:"sonda FWHM",
+  noProbe:"Sem sonda. Clica na imagem.", between:"Entre átomos", betweenSub:"apenas dose de cauda nos vizinhos",
+  vacancy:"Lacuna", vacancySub:"A coluna já está vazia", column:n=>`coluna ${n}×S`,
+  sExit:"S da face de saída", sEntry:"S de entrada (protegido enquanto existir o S inferior)", sLast:"S restante: a coluna está livre por baixo", inSpot:"átomo em spot",
+  ro:["Eletrões totais","Dose no alvo","σ total (300 K)","Limiar (v=0) em kV","Vizinhos deslocados (valor esperado)","Taxa de dose"], atoms:"átomos",
+  legendThr:"limiar", legendZ:"Intensidade HAADF ∝ Z<sup>1.7</sup>",
+  notOnAtom:"A sonda não estava sobre um átomo.", onVac:"A sonda está sobre uma lacuna: a coluna já está vazia.", tail:n=>`Mesmo assim, a cauda do feixe ejetou ${n} átomo(s).`, nothing:"Nada foi ejetado.",
+  sEntryNo:"<b>Sem efeito no S de entrada.</b> Enquanto existir o S inferior, o impulso empurra este S para a camada de Mo, não para fora do cristal. Ejeta primeiro o S da face de saída.",
+  cantEject:"<b>Não pode ser ejetado.</b>",
+  ejected:(el,Em,Ed,sig,D,P)=>`<b>${el} ejetado!</b> E<sub>max</sub> = ${Em} eV face a E<sub>d</sub> = ${Ed} eV, σ = ${sig}, dose ${D} e⁻/Å² → P = ${P}.`,
+  colEmpty2:" <b>Coluna S₂ vazia:</b> dilacuna de S.", colEmpty:" <b>Coluna S₂ vazia:</b> o segundo S também saiu.", lastS:" Resta 1 S na coluna: agora também pode ser ejetado.",
+  collat:n=>` <span style="color:var(--bad)">Dano colateral: ${n} átomo(s) vizinho(s). Experimenta uma sonda mais fina (α maior) ou menos dose.</span>`,
+  intactZero:(el,Em,Ed)=>`<b>${el} intacto.</b> E<sub>max</sub> = ${Em} eV é muito inferior a E<sub>d</sub> = ${Ed} eV; nem as vibrações de ponto zero atingem o limiar, por isso σ = 0. `,
+  excNote:" <i>E<sub>max</sub> está abaixo de E<sub>d</sub>: a sonda excitou eletronicamente o átomo e baixou o seu limiar, por isso pôde sair.</i>", moNever:"O Mo não pode ser ejetado com nenhuma tensão do Themis.", raiseKV:"Aumenta a tensão.",
+  intactLow:(el,sig,D,P)=>`<b>${el} intacto.</b> σ = ${sig} com ${D} e⁻/Å² dá apenas P = ${P}. Aumenta a tensão ou a dose (corrente × tempo).`,
+  survived:(el,P)=>`<b>${el} sobreviveu desta vez.</b> P era ${P}: o sputtering é estocástico. Volta a expor ou aumenta a dose.`,
+  butNb:n=>` <span style="color:var(--bad)">Mas foram ejetados ${n} vizinho(s).</span>`,
+  tEjected:el=>`${el} ejetado`, tN:n=>`${n} átomo(s) ejetado(s)`, tNone:"Sem ejeção", tMission:m=>`Desafio concluído: ${m}`,
+  mat:{
+    graphene:{name:"Grafeno",bond:"C–C 1.42 Å",blurb:"Monocamada de carbono numa rede em favo de mel. Muito estável a 80 kV: com E<sub>d</sub> ≈ 21 eV o limiar estático ronda os 105 kV, e as vibrações antecipam-no um pouco."},
+    hbn:{name:"hBN",bond:"B–N 1.45 Å",blurb:"Nitreto de boro hexagonal. Entre 100 e 120 kV o boro, mais leve, é ejetado cerca de 4–10 vezes mais facilmente do que o azoto. Abaixo de 90 kV ambos se perdem por excitação eletrónica a um ritmo semelhante."},
+    mos2:{name:"MoS₂",bond:"Mo–S proj. 1.82 Å",blurb:"Monocamada 2H vista em [001]: colunas de Mo e colunas de 2 S sobrepostos. Podes esvaziar uma coluna S₂ átomo a átomo."},
+  },
+  missions:{
+    g1:["Estabilidade a 80 kV","Expõe um C a 80 kV com ≥ 10⁸ e⁻/Å² sem o ejetar. É por isso que se trabalha a 80 kV."],
+    g2:["Primeira monolacuna","Ejeta um C sem danificar nenhum vizinho."],
+    g3:["Perto do limiar","Cria uma lacuna a 100 kV ou menos."],
+    h1:["Sputtering seletivo","Ejeta um B a 100 kV ou menos."],
+    h2:["O azoto resiste","Expõe um N a 100 kV com ≥ 10⁸ e⁻/Å² e mantém-no no lugar."],
+    h3:["Lacuna de N","Encontra a tensão necessária para ejetar um N."],
+    m1:["Lacuna de enxofre","Ejeta o S da face de saída de uma coluna S₂."],
+    m2:["Também a 80 kV","Cria uma lacuna de S a 80 kV ou menos."],
+    m4:["Dilacuna de S","Esvazia por completo uma coluna S₂ (os dois átomos de S)."],
+    m3:["O Mo não se move","Expõe um Mo a 300 kV com ≥ 10⁸ e⁻/Å² e confirma que fica no lugar."],
+  },
+},
+};
+let LANG="en";
+try{ const s=localStorage.getItem("knockon-lang"); if(s&&STR[s]) LANG=s; else { const n=(navigator.language||"en").slice(0,2); if(STR[n]) LANG=n; } }catch(e){}
+const L=()=>STR[LANG];
+
+// ======================= PHYSICAL CONSTANTS =======================
+const ME = 510998.95;        // eV, m0c^2
+const AMU = 931.494e6;       // eV
+const KB = 8.617333e-5;      // eV/K
+const ALPHA = 1/137.036;
+const E_CHARGE = 1.602176634e-19;
+const T_ROOM = 300;
+
+const ELEM = {
+  C:  {Z:6,  A:12.011, Ed:21.14, TD:1035, color:"#a7b0bb", ref:"Susi et al., Nat. Commun. 7, 13040 (2016)"},
+  B:  {Z:5,  A:10.81,  Ed:21.5,  TD:1200, color:"#f2a7b8", ref:"Bui et al., Small 19, 2301926 (2023)"},
+  N:  {Z:7,  A:14.007, Ed:23.06, TD:1200, color:"#7d96ff", ref:"Kotakoski et al., PRB 82, 113404 (2010)"},
+  Mo: {Z:42, A:95.95,  Ed:20.0,  TD:450,  color:"#53c4b3", ref:null},
+  S:  {Z:16, A:32.06,  Ed:6.63,  TD:600,  color:"#e9d45c", ref:"fitted to Speckmann et al. 2023 and Kretschmer et al. 2020"},
+};
+
+// ======================= SAMPLES =======================
+const MATERIALS = {
+  graphene:{formula:"C",a:2.46,basis:[{atoms:[{el:"C"}]},{atoms:[{el:"C"}]}]},
+  hbn:{formula:"BN",a:2.504,basis:[{atoms:[{el:"B"}]},{atoms:[{el:"N"}]}]},
+  mos2:{formula:"MoS₂ (2H)",a:3.16,basis:[{atoms:[{el:"Mo"}]},{atoms:[{el:"S",layer:"sup"},{el:"S",layer:"inf"}]}]},
+};
+const FOV = 30; // Å
+const OPTIONS = { kV:[60,80,100,120,160,200,300], I:[5,20,50,100,200], t:[0.01,0.1,1,5,20], alpha:[10,15,20,25,30] };
+const state = { mat:"graphene", sites:[], probe:null, view:"haadf", kV:80, I:50, t:1, alpha:25, log:[], missions:{}, anim:null, hover:null, lastResult:null };
+
+// ======================= PHYSICS =======================
+function lambdaA(kV){ const V=kV*1e3; return 12.2643/Math.sqrt(V*(1+0.97848e-6*V)); } // Å
+function Emax0(E,A){ return 2*E*(E+2*ME)/(A*AMU); }
+function pcOf(E){ return Math.sqrt(E*(E+2*ME)); }
+function mcKinley(E,Z,Ed,Tm){
+  if(Tm<=Ed) return 0;
+  const g=1+E/ME, b2=1-1/(g*g), b=Math.sqrt(b2), x=Tm/Ed, lx=Math.log(x);
+  const pre=0.24940*Z*Z*(1-b2)/(b2*b2); // barn
+  return Math.max(0,pre*((x-1)-b2*lx+Math.PI*Z*ALPHA*b*(2*Math.sqrt(x)-lx-2)));
+}
+const zpCache={};
+function debyeKinetic(TD,T=T_ROOM){
+  const key=TD+"_"+T; if(zpCache[key]) return zpCache[key];
+  const n=1500; let s=0;
+  for(let i=1;i<=n;i++){ const w=i/n, e=KB*TD*w, occ=1/Math.expm1(e/(KB*T)); s+=(i===n?0.5:1)*e*(0.5+occ)*w*w; }
+  return zpCache[key]=3*s/n;
+}
+// Knock-on cross section for a given threshold Ed, averaged over thermal + zero-point vibrations
+function sigmaKO(el,kV,Ed){
+  const d=ELEM[el], E=kV*1e3, E0=Emax0(E,d.A), pc=pcOf(E);
+  const sv=Math.sqrt(debyeKinetic(d.TD)/(d.A*AMU));
+  let num=0,den=0;
+  for(let i=-1000;i<=1000;i++){ const u=i/100, w=Math.exp(-0.5*u*u); num+=w*mcKinley(E,d.Z,Ed,E0+2*pc*u*sv); den+=w; }
+  return num/den;
+}
+// Electronic-excitation channel (same as the paper): the probe electron excites the atom it passes with
+// probability P_i(E) = kappa_i * S(E)/S(60 keV) (relativistic Bethe valence-ionization shape); while excited,
+// the displacement threshold drops to Ed_i and the next knock-on collision ejects it more easily.
+// The excitation is made by the same electrons, so it follows the probe dose profile D(r).
+const E_ION={S:10.36,B:8.298,N:14.534,C:11.260,Mo:7.09};
+const EXC={"B": {"Ed_gs": 21.5, "states": [{"Ed": 6.528, "kappa": 0.0002915}, {"Ed": 17.145, "kappa": 0.04315}]}, "N": {"Ed_gs": 23.06, "states": [{"Ed": 7.142, "kappa": 0.0002782}, {"Ed": 13.952, "kappa": 0.03778}]}, "S": {"Ed_gs": 6.63, "states": [{"Ed": 1.332, "kappa": 0.002449}]}};
+function betheShape(E,el){ const g=1+E/ME, b2=1-1/(g*g), Eb=0.5*ME*b2; return (Math.log(0.938*Eb/E_ION[el])-Math.log(1-b2)-b2)/Eb; }
+function pExc(el,kV,kappa){ return kappa*betheShape(kV*1e3,el)/betheShape(60e3,el); }
+const sigCache={};
+function sigmaEff(el,kV){
+  const key=el+"_"+kV; if(key in sigCache) return sigCache[key];
+  const p=EXC[el]; if(!p) return sigCache[key]=sigmaKO(el,kV,ELEM[el].Ed);
+  const Ps=p.states.map(st=>pExc(el,kV,st.kappa));
+  let tot=(1-Ps.reduce((a,b)=>a+b,0))*sigmaKO(el,kV,p.Ed_gs);
+  p.states.forEach((st,i)=>{ tot+=Ps[i]*sigmaKO(el,kV,st.Ed); });
+  return sigCache[key]=tot;
+}
+// ---- Wave-optical probe (v1.2): aperture-limited, aberration-free, Gaussian focal spread (Cc, dE) and Gaussian source,
+// computed as a radial (Hankel) integral; matches the abTEM probe of the paper within a few per cent.
+const CC_A=1.2e7, DE_EV=0.8, SRC_A=0.5, PR_RMAX=12, PR_N=601, PR_DR=PR_RMAX/(PR_N-1);
+function bessJ0(x){
+  const ax=Math.abs(x);
+  if(ax<8){ const y=x*x;
+    const a=57568490574.0+y*(-13362590354.0+y*(651619640.7+y*(-11214424.18+y*(77392.33017+y*(-184.9052456)))));
+    const b=57568490411.0+y*(1029532985.0+y*(9494680.718+y*(59272.64853+y*(267.8532712+y))));
+    return a/b; }
+  const z=8/ax, y=z*z, xx=ax-0.785398164;
+  const a=1+y*(-0.1098628627e-2+y*(0.2734510407e-4+y*(-0.2073370639e-5+y*0.2093887211e-6)));
+  const b=-0.1562499995e-1+y*(0.1430488765e-3+y*(-0.6911147651e-5+y*(0.7621095161e-6-y*0.934935152e-7)));
+  return Math.sqrt(0.636619772/ax)*(Math.cos(xx)*a-z*Math.sin(xx)*b);
+}
+const probeCache={};
+function probeProfile(kV,alphaMrad){
+  const key=kV+"_"+alphaMrad; if(probeCache[key]) return probeCache[key];
+  const lam=lambdaA(kV), kmax=alphaMrad*1e-3/lam, NK=240, dk=kmax/NK, NF=15;
+  const sf=CC_A*(DE_EV/2.3548)/(kV*1e3);
+  const k=new Float64Array(NK); for(let j=0;j<NK;j++) k[j]=(j+0.5)*dk;
+  const fw=[], fd=[]; let ws=0; for(let i=0;i<NF;i++){ const u=-2.5+5*i/(NF-1); fd.push(u*sf); const w=Math.exp(-0.5*u*u); fw.push(w); ws+=w; }
+  const I=new Float64Array(PR_N);
+  const J=new Float64Array(PR_N*NK);
+  for(let i=0;i<PR_N;i++){ const r=i*PR_DR; for(let j=0;j<NK;j++) J[i*NK+j]=bessJ0(2*Math.PI*k[j]*r)*2*Math.PI*k[j]*dk; }
+  for(let f=0;f<NF;f++){
+    const c=new Float64Array(NK), s=new Float64Array(NK);
+    for(let j=0;j<NK;j++){ const ph=Math.PI*lam*fd[f]*k[j]*k[j]; c[j]=Math.cos(ph); s[j]=Math.sin(ph); }
+    for(let i=0;i<PR_N;i++){ let re=0,im=0; const o=i*NK; for(let j=0;j<NK;j++){ re+=J[o+j]*c[j]; im-=J[o+j]*s[j]; } I[i]+=fw[f]/ws*(re*re+im*im); }
+  }
+  // finite source: Hankel transform, Gaussian filter, inverse transform
+  const NQ=400, qmax=2*kmax, dq=qmax/(NQ-1), sg=SRC_A/2.3548, Iq=new Float64Array(NQ), Is=new Float64Array(PR_N);
+  for(let m=0;m<NQ;m++){ const q=m*dq; let a=0; for(let i=0;i<PR_N;i++){ const r=i*PR_DR; a+=I[i]*bessJ0(2*Math.PI*q*r)*2*Math.PI*r*PR_DR; } Iq[m]=a*Math.exp(-2*Math.PI*Math.PI*sg*sg*q*q); }
+  for(let i=0;i<PR_N;i++){ const r=i*PR_DR; let a=0; for(let m=0;m<NQ;m++){ const q=m*dq; a+=Iq[m]*bessJ0(2*Math.PI*q*r)*2*Math.PI*q*dq; } Is[i]=a; }
+  const p0=Is[0], rel=new Float64Array(PR_N); for(let i=0;i<PR_N;i++) rel[i]=Math.max(Is[i]/p0,0);
+  let fwhm=0; for(let i=1;i<PR_N;i++){ if(rel[i]<0.5){ fwhm=2*((i-1)+(rel[i-1]-0.5)/(rel[i-1]-rel[i]))*PR_DR; break; } }
+  return probeCache[key]={rel, peak:p0/(Math.PI*kmax*kmax), fwhm};   // peak: dose per electron at the centre (1/Å²), Parseval norm
+}
+// Displayed probe (HAADF render, FWHM readout): Gaussian core, FWHM² = (0.51λ/α)² + d_source² + d_Cc²
+function probeFWHM(kV,alphaMrad){
+  const lam=lambdaA(kV), a=alphaMrad*1e-3;
+  const dDiff=0.51*lam/a, dSrc=0.5, dCc=0.2*1.2e7*(0.8/(kV*1e3))*a;
+  return Math.sqrt(dDiff*dDiff+dSrc*dSrc+dCc*dCc);
+}
+function relDose(r){
+  const pr=probeProfile(state.kV,state.alpha);
+  if(r>=PR_RMAX) return pr.rel[PR_N-1]*Math.pow(PR_RMAX/r,3);
+  const x=r/PR_DR, i=Math.floor(x), f=x-i; return pr.rel[i]*(1-f)+pr.rel[i+1]*f;
+}
+const R_EVENT=10; // Å: atoms within this distance of the probe are exposed to its tails
+function nElectrons(){ return state.I*1e-12*state.t/E_CHARGE; }
+function doseAt(r){ return nElectrons()*probeProfile(state.kV,state.alpha).peak*relDose(r); }
+// Exit-surface S goes first; the entrance (top) S becomes sputterable once the bottom S of its column is gone.
+function sputterable(site,atom){
+  if(!atom.present) return false;
+  if(atom.layer==="sup") return !site.atoms.some(a=>a.layer==="inf"&&a.present);
+  return true;
+}
+function presentS(site){ return site.atoms.filter(a=>a.el==="S"&&a.present).length; }
+
+// ======================= LATTICE =======================
+function buildLattice(key){
+  const m=MATERIALS[key], a=m.a, sites=[], margin=1.0;
+  const a2=[a/2,a*Math.sqrt(3)/2], bOff=[a/2,a/(2*Math.sqrt(3))], N=Math.ceil(FOV/a)+6;
+  for(let i=-N;i<=N;i++) for(let j=-N;j<=N;j++){
+    const x0=i*a+j*a2[0], y0=j*a2[1];
+    [[0,0],bOff].forEach((off,k)=>{
+      const x=x0+off[0], y=y0+off[1];
+      if(x>margin&&x<FOV-margin&&y>margin&&y<FOV-margin) sites.push({x,y,sub:k,atoms:m.basis[k].atoms.map(at=>({...at,present:true,fade:1}))});
+    });
+  }
+  const dnn=a/Math.sqrt(3)*1.15;
+  sites.forEach(s=>s.nb=[]);
+  for(let i=0;i<sites.length;i++) for(let j=i+1;j<sites.length;j++){
+    const dx=sites[i].x-sites[j].x, dy=sites[i].y-sites[j].y;
+    if(dx*dx+dy*dy<dnn*dnn) sites[i].nb.push(j);
+  }
+  return sites;
+}
+
+// ======================= RENDER =======================
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+const W=cv.width, SC=W/FOV;
+let haadfBuf=null, noise=null;
+function makeNoise(){ noise=new Float32Array(W*W); let s=12345; for(let i=0;i<noise.length;i++){ s=(s*1103515245+12345)&0x7fffffff; const u=s/0x7fffffff; s=(s*1103515245+12345)&0x7fffffff; const v=s/0x7fffffff; noise[i]=Math.sqrt(-2*Math.log(u+1e-9))*Math.cos(2*Math.PI*v); } }
+function columnZ(site){ return site.atoms.reduce((acc,at)=>acc+(at.present?1:Math.max(0,at.fade))*Math.pow(ELEM[at.el].Z,1.7),0); }
+function pristineMax(){ return Math.max(...MATERIALS[state.mat].basis.map(b=>b.atoms.reduce((a,at)=>a+Math.pow(ELEM[at.el].Z,1.7),0))); }
+function renderHAADF(){
+  const buf=new Float32Array(W*W);
+  const w=Math.max(probeFWHM(state.kV,state.alpha),0.55);
+  const sg=w/2.3548*SC, inv=1/(2*sg*sg), R=Math.ceil(sg*3.5);
+  for(const s of state.sites){
+    const I=columnZ(s); if(I<=0) continue;
+    const cx=s.x*SC, cy=s.y*SC;
+    const x0=Math.max(0,Math.floor(cx-R)), x1=Math.min(W-1,Math.ceil(cx+R)), y0=Math.max(0,Math.floor(cy-R)), y1=Math.min(W-1,Math.ceil(cy+R));
+    for(let y=y0;y<=y1;y++){ const dy=y-cy; for(let x=x0;x<=x1;x++){ const dx=x-cx; buf[y*W+x]+=I*Math.exp(-(dx*dx+dy*dy)*inv); } }
+  }
+  const norm=1/pristineMax(), img=ctx.createImageData(W,W), d=img.data;
+  for(let i=0;i<buf.length;i++){
+    let v=buf[i]*norm; v=Math.pow(Math.min(1,Math.max(0,v)),0.8)*0.92+0.04+noise[i]*0.035;
+    v=Math.max(0,Math.min(1,v))*255;
+    d[i*4]=v; d[i*4+1]=v; d[i*4+2]=Math.min(255,v*1.04+3); d[i*4+3]=255;
+  }
+  haadfBuf=img;
+}
+function anyPresent(s){ return s.atoms.some(a=>a.present); }
+function shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255; r=Math.round(r*(1+f)); g=Math.round(g*(1+f)); b=Math.round(b*(1+f)); return `rgb(${r},${g},${b})`; }
+function drawBall(){
+  ctx.fillStyle="#0a0e18"; ctx.fillRect(0,0,W,W);
+  const S=state.sites;
+  ctx.lineWidth=3; ctx.strokeStyle="rgba(150,165,190,.35)"; ctx.beginPath();
+  for(const s of S){ if(!anyPresent(s)) continue; for(const j of s.nb){ const t=S[j]; if(!anyPresent(t)) continue; ctx.moveTo(s.x*SC,s.y*SC); ctx.lineTo(t.x*SC,t.y*SC);} }
+  ctx.stroke();
+  for(const s of S){
+    s.atoms.forEach((at,k)=>{
+      const a=at.present?1:at.fade; if(a<=0.01) return;
+      const el=ELEM[at.el], r=(at.el==="Mo"?11:at.el==="S"?9:8)*(at.present?1:(0.4+0.6*a));
+      const off=(s.atoms.length>1)?(k===0?-2.5:2.5):0, X=s.x*SC+off, Y=s.y*SC+off;
+      ctx.globalAlpha=a; ctx.beginPath(); ctx.arc(X,Y,r,0,Math.PI*2);
+      const g=ctx.createRadialGradient(X-r*.35,Y-r*.35,r*.15,X,Y,r);
+      g.addColorStop(0,"#ffffff"); g.addColorStop(.25,el.color); g.addColorStop(1,shade(el.color,-.45));
+      ctx.fillStyle=g; ctx.fill(); ctx.globalAlpha=1;
+    });
+    const missing=s.atoms.some(a=>!a.present&&a.fade<=0.01);
+    if(missing){
+      const full=!anyPresent(s);
+      ctx.setLineDash([3,3]); ctx.strokeStyle=full?"rgba(239,106,91,.8)":"rgba(239,106,91,.5)"; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(s.x*SC,s.y*SC,full?8:12,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+}
+function draw(){
+  if(state.view==="haadf"){ if(!haadfBuf) renderHAADF(); ctx.putImageData(haadfBuf,0,0); } else drawBall();
+  if(state.hover!==null && state.hover!==targetIndex()){ const s=state.sites[state.hover]; ctx.strokeStyle="rgba(255,255,255,.45)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(s.x*SC,s.y*SC,14,0,Math.PI*2); ctx.stroke(); }
+  if(state.probe){
+    const px=state.probe.x*SC, py=state.probe.y*SC, w=probeFWHM(state.kV,state.alpha)*SC, an=state.anim;
+    if(an){ const p=an.p, rad=w*(0.5+p*2.5), g=ctx.createRadialGradient(px,py,0,px,py,rad); g.addColorStop(0,`rgba(255,214,140,${0.9*(1-p)})`); g.addColorStop(1,"rgba(243,168,59,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,rad,0,Math.PI*2); ctx.fill(); }
+    ctx.strokeStyle="#f3a83b"; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(px,py,w/2,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([4,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.arc(px,py,w,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(px-w-10,py); ctx.lineTo(px-w/2-3,py); ctx.moveTo(px+w/2+3,py); ctx.lineTo(px+w+10,py);
+    ctx.moveTo(px,py-w-10); ctx.lineTo(px,py-w/2-3); ctx.moveTo(px,py+w/2+3); ctx.lineTo(px,py+w+10); ctx.stroke();
+  }
+}
+
+// ======================= UI =======================
+const $=id=>document.getElementById(id);
+function fmtSci(x){ if(!isFinite(x)||x===0) return "0"; const e=Math.floor(Math.log10(Math.abs(x))); const m=x/Math.pow(10,e); const sup=String(e).split("").map(c=>"⁰¹²³⁴⁵⁶⁷⁸⁹"["0123456789".indexOf(c)]||"⁻").join(""); return (Math.abs(e)<=2? x.toPrecision(3).replace(/\.?0+$/,"") : `${m.toFixed(1)}×10${sup}`); }
+function fmtSigma(s){ if(s===0) return "0 b"; if(s<1e-3) return fmtSci(s)+" b"; return (s<10?s.toFixed(2):s.toFixed(1))+" b"; }
+function fmtP(p){ if(p<0.001) return p===0?"0 %":"<0.1 %"; if(p>0.999) return ">99.9 %"; return (p*100).toFixed(p<0.1?1:0)+" %"; }
+function fmtT(t){ return t<1? (t*1000)+" ms" : t+" s"; }
+function thresholdKV(el){ const d=ELEM[el], target=d.Ed*d.A*AMU/2; return ((-2*ME+Math.sqrt(4*ME*ME+4*target))/2/1e3).toFixed(0); }
+
+function buildSamples(){
+  const host=$("samples"); host.innerHTML="";
+  Object.entries(MATERIALS).forEach(([key,m])=>{
+    const tm=L().mat[key];
+    const b=document.createElement("button"); b.className="sample"; b.type="button";
+    const c=document.createElement("canvas"); c.width=480; c.height=300; b.appendChild(c);
+    const body=document.createElement("div"); body.className="body";
+    body.innerHTML=`<div class="name">${tm.name}</div><div class="facts">${m.formula} · a = ${m.a} Å · ${tm.bond}</div><p>${tm.blurb}</p>`;
+    b.appendChild(body); b.addEventListener("click",()=>openLab(key)); host.appendChild(b);
+    drawPreview(c,key);
+  });
+}
+function drawPreview(c,key){
+  const g=c.getContext("2d"), m=MATERIALS[key], sc=26, a=m.a;
+  const img=g.createImageData(c.width,c.height), d=img.data, buf=new Float32Array(c.width*c.height);
+  const pts=[], N=14;
+  for(let i=-N;i<=N;i++) for(let j=-N;j<=N;j++){ const x0=i*a+j*a/2, y0=j*a*Math.sqrt(3)/2; pts.push([x0,y0,0],[x0+a/2,y0+a/(2*Math.sqrt(3)),1]); }
+  const maxI=Math.max(...m.basis.map(b=>b.atoms.reduce((s,at)=>s+Math.pow(ELEM[at.el].Z,1.7),0)));
+  const sg=0.32*sc, inv=1/(2*sg*sg), R=Math.ceil(sg*3.5);
+  for(const [x,y,k] of pts){
+    const cx=x*sc+c.width/2-40, cy=y*sc+c.height/2; if(cx<-R||cx>c.width+R||cy<-R||cy>c.height+R) continue;
+    const I=m.basis[k].atoms.reduce((s,at)=>s+Math.pow(ELEM[at.el].Z,1.7),0)/maxI;
+    for(let yy=Math.max(0,Math.floor(cy-R));yy<=Math.min(c.height-1,cy+R);yy++) for(let xx=Math.max(0,Math.floor(cx-R));xx<=Math.min(c.width-1,cx+R);xx++){ const dx=xx-cx,dy=yy-cy; buf[yy*c.width+xx]+=I*Math.exp(-(dx*dx+dy*dy)*inv); }
+  }
+  for(let i=0;i<buf.length;i++){ const v=Math.min(255,Math.pow(Math.min(1,buf[i]),0.8)*235+8); d[i*4]=v; d[i*4+1]=v; d[i*4+2]=Math.min(255,v*1.05); d[i*4+3]=255; }
+  g.putImageData(img,0,0);
+}
+
+function buildControls(){
+  const fmts={kV:v=>v+" kV",I:v=>v+" pA",t:fmtT,alpha:v=>v+" mrad"};
+  const host=$("controls"); host.innerHTML="";
+  const hd=document.createElement("div"); hd.className="label ph"; hd.textContent=L().ctrlLabel; host.appendChild(hd);
+  ["kV","I","t","alpha"].forEach(key=>{
+    const wrap=document.createElement("div"); wrap.className="ctrl"; wrap.id="ctrl_"+key;
+    wrap.innerHTML=`<div class="head"><span class="label">${L().ctrl[key]}</span><span class="hint">${key==="kV"?L().hintKV:""}</span></div>`;
+    const chips=document.createElement("div"); chips.className="chips"; chips.setAttribute("role","group"); chips.setAttribute("aria-label",L().ctrl[key]);
+    OPTIONS[key].forEach(v=>{
+      const b=document.createElement("button"); b.type="button"; b.className="chip"; b.id=`opt_${key}_${String(v).replace(".","_")}`;
+      b.textContent=fmts[key](v); b.setAttribute("aria-pressed",String(state[key]===v));
+      b.addEventListener("click",()=>{ state[key]=v; chips.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); if(key==="kV"||key==="alpha") haadfBuf=null; update(); });
+      chips.appendChild(b);
+    });
+    wrap.appendChild(chips); host.appendChild(wrap);
+  });
+}
+
+function nearestSite(p){ let best=null,bd=1e9; state.sites.forEach((s,i)=>{ const d=Math.hypot(s.x-p.x,s.y-p.y); if(d<bd){bd=d;best=i;} }); return {best,bd}; }
+function targetIndex(){ if(!state.probe) return null; const {best,bd}=nearestSite(state.probe); return bd<0.75?best:null; }
+function targetAtom(site){
+  if(!site) return null;
+  const pres=site.atoms.filter(a=>a.present); if(!pres.length) return null;
+  return pres.find(a=>sputterable(site,a)) || pres[0];
+}
+
+function update(){
+  const T=L(), lam=lambdaA(state.kV), w=probeFWHM(state.kV,state.alpha), Ne=nElectrons();
+  const ti=targetIndex(), site=ti!==null?state.sites[ti]:null, at=targetAtom(site);
+  $("hudL").innerHTML=`${T.mat[state.mat].name} · ${T.hudFov} ${FOV} Å<br>${state.kV} kV · ${state.I} pA · α ${state.alpha} mrad`;
+  $("hudR").innerHTML=`${T.hudProbe} ${w.toFixed(2)} Å<br>λ ${(lam*100).toFixed(2)} pm`;
+  $("scalebar").style.width=(5/FOV*100)+"%";
+
+  const tb=$("targetBox");
+  if(!state.probe) tb.innerHTML=`<div class="t" style="color:var(--muted)">${T.noProbe}</div>`;
+  else if(!site) tb.innerHTML=`<div class="dot" style="background:var(--panel-2);border:1px solid var(--line)"></div><div class="t">${T.between}<small>(${state.probe.x.toFixed(1)}, ${state.probe.y.toFixed(1)}) Å · ${T.betweenSub}</small></div>`;
+  else if(!at) tb.innerHTML=`<div class="dot" style="background:transparent;border:1.5px dashed var(--bad)"></div><div class="t">${T.vacancy}<small>${T.vacancySub}</small></div>`;
+  else {
+    const isS2=site.atoms.length>1, nS=presentS(site);
+    const col=isS2?` · ${T.column(nS)}`:"";
+    let extra=T.inSpot;
+    if(isS2) extra = at.layer==="inf" ? T.sExit : (sputterable(site,at) ? T.sLast : T.sEntry);
+    tb.innerHTML=`<div class="dot" style="background:${ELEM[at.el].color}">${at.el}</div><div class="t">${at.el} · Z = ${ELEM[at.el].Z} · M = ${ELEM[at.el].A} u${col}<small>${extra} · E<sub>d</sub> = ${ELEM[at.el].Ed} eV</small></div>`;
+  }
+
+  let Em=0,Ed=null,sig=0,D=0,P=0,coll=0;
+  if(at){ Em=Emax0(state.kV*1e3,ELEM[at.el].A); Ed=ELEM[at.el].Ed; sig=sputterable(site,at)?sigmaEff(at.el,state.kV):0; D=doseAt(Math.hypot(site.x-state.probe.x,site.y-state.probe.y)); P=1-Math.exp(-sig*1e-8*D); }
+  if(state.probe){
+    state.sites.forEach((s,i)=>{ if(i===ti) return; const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>R_EVENT) return; const d=doseAt(r); s.atoms.forEach(a=>{ if(sputterable(s,a)) coll+=1-Math.exp(-sigmaEff(a.el,state.kV)*1e-8*d); }); });
+  }
+  const scaleMax=Math.max(30,(Ed||0)*1.4,Em*1.1);
+  $("gFill").style.width=(Math.min(Em,scaleMax)/scaleMax*100)+"%";
+  $("gThr").style.left=Ed?`calc(${Ed/scaleMax*100}% - 1px)`:"-10px";
+  $("gThr").style.display=Ed?"block":"none";
+  $("gThr").title=T.thrTitle.replace(/E_d/g,"Ed");
+  $("gMax").textContent=scaleMax.toFixed(0)+" eV";
+  $("gaugeTxt").innerHTML=at?`${Em.toFixed(2)} eV vs E<sub>d</sub> = ${Ed} eV`:"—";
+  $("gFill").style.background=at?(Em>=Ed?"var(--ok)":"var(--beam)"):"var(--line)";
+
+  const vals=[ fmtSci(Ne), at?fmtSci(D)+" e⁻/Å²":"—", at?fmtSigma(sig):"—", at?thresholdKV(at.el)+" kV":"—",
+    state.probe?coll.toFixed(coll<0.1?3:2)+" "+T.atoms:"—", fmtSci(state.I*1e-12/E_CHARGE*probeProfile(state.kV,state.alpha).peak)+" e⁻/Å²·s" ];
+  $("readouts").innerHTML=vals.map((v,i)=>`<div class="ro"><span class="v">${v}</span><span class="k">${T.ro[i]}</span></div>`).join("");
+  $("pBig").textContent=at?fmtP(P):"—";
+  $("pBig").style.color=!at?"var(--muted)":P>0.5?"var(--ok)":P>0.05?"var(--warn)":"var(--fg)";
+  $("fireBtn").disabled=!state.probe||!!state.anim;
+  draw();
+  afterUpdate();
+}
+
+// ======================= EXPOSURE =======================
+function expose(){
+  if(!state.probe||state.anim) return;
+  const ti=targetIndex(), site=ti!==null?state.sites[ti]:null, at=targetAtom(site);
+  const w=probeFWHM(state.kV,state.alpha);
+  const ejected=[]; let targetEjected=false, targetP=0, targetD=0, targetSig=0, secondS=false;
+  const sputSnapshot = (site&&at) ? sputterable(site,at) : false;
+  state.sites.forEach((s,i)=>{
+    const r=Math.hypot(s.x-state.probe.x,s.y-state.probe.y); if(r>R_EVENT) return;
+    const D=doseAt(r);
+    const bottom=s.atoms.find(a=>a.layer==="inf"), top=s.atoms.find(a=>a.layer==="sup");
+    if(bottom&&top&&bottom.present&&top.present){
+      // S2 column: sequential Poisson ejections with equal rates (x = σD)
+      const x=sigmaEff("S",state.kV)*1e-8*D, p1=1-Math.exp(-x);
+      if(i===ti){ targetP=p1; targetD=D; targetSig=sigmaEff("S",state.kV); }
+      if(Math.random()<p1){
+        bottom.present=false; ejected.push({i,el:"S"}); if(i===ti) targetEjected=true;
+        const p2 = p1>0 ? (1-Math.exp(-x)*(1+x))/p1 : 0;
+        if(Math.random()<p2){ top.present=false; ejected.push({i,el:"S"}); if(i===ti) secondS=true; }
+      }
+      return;
+    }
+    s.atoms.forEach(a=>{
+      if(!sputterable(s,a)) return;
+      const sg=sigmaEff(a.el,state.kV), p=1-Math.exp(-sg*1e-8*D);
+      if(i===ti&&a===at){ targetP=p; targetD=D; targetSig=sg; }
+      if(Math.random()<p){ a.present=false; ejected.push({i,el:a.el}); if(i===ti&&a===at) targetEjected=true; }
+    });
+  });
+  if(at&&!sputSnapshot) targetD=doseAt(Math.hypot(site.x-state.probe.x,site.y-state.probe.y));
+  ejected.forEach(e=>state.sites[e.i].atoms.forEach(a=>{ if(!a.present&&a.fade===1) a.fade=0.999; }));
+  const fromTarget=ejected.filter(e=>e.i===ti).length;
+  const rec={n:state.log.length+1,mat:state.mat,kV:state.kV,I:state.I,t:state.t,alpha:state.alpha,el:at?at.el:null,vac:!!(site&&!at),sput:sputSnapshot,
+    D:targetD,P:targetP,sig:targetSig,hit:targetEjected,secondS,ejected,collateral:ejected.length-fromTarget,
+    colEmpty: site&&site.atoms.length>1 ? presentS(site)===0 : false,
+    sLeft: site&&site.atoms.length>1 ? presentS(site) : null};
+  state.log.unshift(rec);
+  animate(()=>{ haadfBuf=null; state.lastResult=rec; report(rec); checkMissions(rec); renderLog();
+    if(tut.on&&TUT_STEPS[tut.step]==="fire") tut.step++;
+    update(); });
+}
+function animate(done){
+  const t0=performance.now(), dur=matchMedia("(prefers-reduced-motion: reduce)").matches?50:900;
+  state.anim={p:0}; $("fireBtn").disabled=true;
+  function step(now){
+    const p=Math.min(1,(now-t0)/dur); state.anim.p=p;
+    state.sites.forEach(s=>s.atoms.forEach(a=>{ if(!a.present&&a.fade>0&&a.fade<1) a.fade=Math.max(0.001,0.999-p*1.1); }));
+    if(state.view==="haadf"){ haadfBuf=null; renderHAADF(); }
+    draw();
+    if(p<1) requestAnimationFrame(step); else { state.sites.forEach(s=>s.atoms.forEach(a=>{ if(!a.present) a.fade=0; })); state.anim=null; done(); }
+  }
+  requestAnimationFrame(step);
+}
+function report(rec){
+  const T=L(), el=$("result");
+  if(!rec){ el.className="result neutral"; el.innerHTML=T.resultInit; return; }
+  const Em=rec.el?Emax0(rec.kV*1e3,ELEM[rec.el].A):0, Ed=rec.el?ELEM[rec.el].Ed:0;
+  let cls="neutral", html="";
+  if(!rec.el){ html=`<b>${rec.vac?T.onVac:T.notOnAtom}</b> ${rec.ejected.length?T.tail(rec.ejected.length):T.nothing}`; }
+  else if(!rec.sput){ html = rec.el==="S" ? T.sEntryNo : T.cantEject; }
+  else if(rec.hit){
+    cls="ok";
+    html=T.ejected(rec.el,Em.toFixed(2),Ed,fmtSigma(rec.sig),fmtSci(rec.D),fmtP(rec.P));
+    if(Em<Ed) html+=T.excNote;
+    if(rec.secondS) html+=T.colEmpty; else if(rec.colEmpty) html+=T.colEmpty2; else if(rec.sLeft===1) html+=T.lastS;
+    if(rec.collateral>0) html+=T.collat(rec.collateral);
+  } else {
+    cls="bad";
+    if(rec.sig===0) html=T.intactZero(rec.el,Em.toFixed(2),Ed)+(rec.el==="Mo"?T.moNever:T.raiseKV);
+    else if(rec.P<0.05) html=T.intactLow(rec.el,fmtSigma(rec.sig),fmtSci(rec.D),fmtP(rec.P));
+    else html=T.survived(rec.el,fmtP(rec.P));
+    if(rec.collateral>0) html+=T.butNb(rec.collateral);
+  }
+  el.className="result "+cls; el.innerHTML=html;
+}
+let toastTimer=null;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.opacity=1; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.style.opacity=0,1800); }
+function toastFor(rec){ const T=L(); toast(rec.hit?T.tEjected(rec.el):(rec.ejected.length?T.tN(rec.ejected.length):T.tNone)); }
+
+function renderLog(){
+  const T=L(), host=$("log"), rows=state.log.filter(r=>r.mat===state.mat);
+  if(!rows.length){ host.innerHTML=`<div class="empty">${T.logEmpty}</div>`; return; }
+  host.innerHTML=`<table><thead><tr>${T.logHead.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${
+    rows.map(r=>`<tr><td>${r.n}</td><td>${r.el||"—"}</td><td>${r.kV}</td><td>${r.I}</td><td>${fmtT(r.t)}</td><td>${r.alpha}</td><td>${r.el?fmtSci(r.D):"—"}</td><td>${r.el?fmtP(r.P):"—"}</td><td class="${r.hit?"y":"n"}">${r.hit?T.ejectedW+(r.secondS?" ×2":""):T.intactW}${r.collateral?` +${r.collateral}`:""}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+
+// ======================= CHALLENGES =======================
+const MISSIONS={
+  graphene:[
+    {id:"g1",test:r=>r.el==="C"&&r.kV<=80&&r.D>=1e8&&!r.hit},
+    {id:"g2",test:r=>r.el==="C"&&r.hit&&r.collateral===0},
+    {id:"g3",test:r=>r.el==="C"&&r.hit&&r.kV<=100},
+  ],
+  hbn:[
+    {id:"h1",test:r=>r.el==="B"&&r.hit&&r.kV<=100},
+    {id:"h2",test:r=>r.el==="N"&&r.kV<=100&&r.D>=1e8&&!r.hit},
+    {id:"h3",test:r=>r.el==="N"&&r.hit},
+  ],
+  mos2:[
+    {id:"m1",test:r=>r.el==="S"&&r.hit},
+    {id:"m2",test:r=>r.el==="S"&&r.hit&&r.kV<=80},
+    {id:"m4",test:r=>r.el==="S"&&r.colEmpty},
+    {id:"m3",test:r=>r.el==="Mo"&&r.kV===300&&r.D>=1e8&&!r.hit},
+  ],
+};
+function renderMissions(){
+  const T=L();
+  $("missions").innerHTML=MISSIONS[state.mat].map(m=>`<li class="${state.missions[m.id]?"done":""}"><span class="ck">${state.missions[m.id]?"✓":""}</span><div><div class="mt">${T.missions[m.id][0]}</div><div class="md">${T.missions[m.id][1]}</div></div></li>`).join("");
+}
+function checkMissions(rec){
+  let newDone=null;
+  MISSIONS[state.mat].forEach(m=>{ if(!state.missions[m.id]&&m.test(rec)){ state.missions[m.id]=true; newDone=m.id; } });
+  renderMissions(); toastFor(rec);
+  if(newDone) setTimeout(()=>toast(L().tMission(L().missions[newDone][0])),1900);
+}
+
+// ======================= LANGUAGE =======================
+function renderLegend(){
+  const T=L(), els=[...new Set(MATERIALS[state.mat].basis.flatMap(b=>b.atoms.map(a=>a.el)))];
+  $("legend").innerHTML=els.map(e=>`<span><i style="background:${ELEM[e].color}"></i>${e} · E<sub>d</sub> ${ELEM[e].Ed} eV · ${T.legendThr} ≈ ${thresholdKV(e)} kV</span>`).join("")+`<span>${T.legendZ}</span>`;
+}
+function applyLang(){
+  const T=L();
+  document.documentElement.lang=LANG;
+  document.querySelectorAll("[data-i]").forEach(n=>n.textContent=T[n.dataset.i]);
+  document.querySelectorAll("[data-ih]").forEach(n=>n.innerHTML=T[n.dataset.ih]);
+  document.querySelectorAll("#langSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===LANG)));
+  cv.setAttribute("aria-label",T.canvasAria);
+  $("elemHead").innerHTML=`<tr>${T.elemHead.map(h=>`<th>${h}</th>`).join("")}</tr>`;
+  $("elemTable").innerHTML=Object.entries(ELEM).map(([k,d])=>`<tr><td>${k}</td><td>${d.Z}</td><td>${d.Ed}</td><td>${d.TD}</td><td>${d.ref||T.moRef}</td></tr>`).join("");
+  buildSamples(); buildControls();
+  $("sampleTitle").textContent=T.mat[state.mat].name;
+  renderLegend(); renderMissions(); renderLog();
+  if(state.lastResult&&state.lastResult.mat===state.mat) report(state.lastResult); else report(null);
+  update();
+}
+document.querySelectorAll("#langSeg button").forEach(b=>b.addEventListener("click",()=>{
+  LANG=b.dataset.lang; try{ localStorage.setItem("knockon-lang",LANG); }catch(e){}
+  applyLang();
+}));
+
+// ======================= NAVIGATION =======================
+function openLab(key){
+  state.mat=key; state.sites=buildLattice(key); state.probe=null; state.hover=null; haadfBuf=null; state.lastResult=null;
+  if(tut.on&&tut.step<=TUT_STEPS.indexOf("sample")) tut.step=TUT_STEPS.indexOf("atom");
+  showSection("lab");
+  $("sampleTitle").textContent=L().mat[key].name;
+  renderLegend(); report(null); renderMissions(); renderLog(); update();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function canvasPos(ev){ const r=cv.getBoundingClientRect(); return {x:(ev.clientX-r.left)/r.width*FOV, y:(ev.clientY-r.top)/r.height*FOV}; }
+cv.addEventListener("click",ev=>{
+  if(state.anim) return;
+  const p=canvasPos(ev), {best,bd}=nearestSite(p);
+  state.probe=(bd<0.7)?{x:state.sites[best].x,y:state.sites[best].y}:p;
+  update();
+});
+cv.addEventListener("mousemove",ev=>{
+  if(state.anim) return;
+  const {best,bd}=nearestSite(canvasPos(ev)), h=bd<0.7?best:null;
+  if(h!==state.hover){ state.hover=h; draw(); }
+});
+cv.addEventListener("mouseleave",()=>{ state.hover=null; draw(); });
+$("fireBtn").addEventListener("click",expose);
+$("backBtn").addEventListener("click",()=>showSection("select"));
+$("resetBtn").addEventListener("click",()=>{ state.sites=buildLattice(state.mat); haadfBuf=null; state.lastResult=null; $("result").className="result neutral"; $("result").textContent=L().restored; update(); });
+function setView(v){ state.view=v;
+  ["modeHaadf","rbHaadf"].forEach(id=>$(id).setAttribute("aria-pressed",String(v==="haadf")));
+  ["modeBall","rbBall"].forEach(id=>$(id).setAttribute("aria-pressed",String(v==="ball")));
+  draw(); renderVtab(); }
+$("modeHaadf").addEventListener("click",()=>setView("haadf"));
+$("modeBall").addEventListener("click",()=>setView("ball"));
+document.addEventListener("keydown",e=>{ if(!$("lab").hidden&&(e.key===" "||e.key==="Enter")&&document.activeElement===document.body){ e.preventDefault(); expose(); } });
+
+// ======================= RESTART =======================
+let restartArmed=null;
+$("restartBtn").addEventListener("click",()=>{
+  const btn=$("restartBtn");
+  if(!restartArmed){
+    btn.textContent=L().restartConfirm; btn.classList.add("confirm");
+    restartArmed=setTimeout(()=>{ restartArmed=null; btn.classList.remove("confirm"); btn.textContent=L().restart; },3500);
+    return;
+  }
+  clearTimeout(restartArmed); restartArmed=null; btn.classList.remove("confirm");
+  if(state.anim) return;
+  Object.assign(state,{mat:"graphene",sites:[],probe:null,view:"haadf",kV:80,I:50,t:1,alpha:25,log:[],missions:{},hover:null,lastResult:null});
+  haadfBuf=null;
+  ["modeHaadf","rbHaadf"].forEach(id=>$(id).setAttribute("aria-pressed","true")); ["modeBall","rbBall"].forEach(id=>$(id).setAttribute("aria-pressed","false"));
+  tut.on=false; tut.step=0;
+  showSection("start");
+  applyLang();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+
+// ======================= INTERFACE THEMES (v1.1) =======================
+const THEMES=["classic","tia","velox"];
+let THEME="classic";
+try{ const t=localStorage.getItem("knockon-theme"); if(THEMES.includes(t)) THEME=t; }catch(e){}
+function setTheme(t){
+  THEME=t; try{ localStorage.setItem("knockon-theme",t); }catch(e){}
+  document.body.className="th-"+t;
+  document.querySelectorAll("#ifaceSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===t)));
+  $("tbarTitle").textContent = t==="velox" ? "Acquisition" : "TEM User Interface";
+  $("tbarMenu").textContent = t==="velox" ? "File Edit View Optics DPC Detectors Help" : "File Mode Help";
+  if(!$("lab").hidden) update(); else tutRender();
+}
+function showSection(id){
+  ["start","select","lab"].forEach(k=>{ $(k).hidden=(k!==id); });
+  window.scrollTo({top:0});
+  tutRender();
+}
+document.querySelectorAll("#ifaceSeg button").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.th)));
+$("rbBack").addEventListener("click",()=>$("backBtn").click());
+$("rbReset").addEventListener("click",()=>$("resetBtn").click());
+$("rbHaadf").addEventListener("click",()=>setView("haadf"));
+$("rbFire").addEventListener("click",expose);
+$("rbBall").addEventListener("click",()=>setView("ball"));
+
+// Instrument read-outs (TIA status bar, Velox info strip): live values from the game state.
+const MAG_CAL=99.9; // nm·Mx: FOV × magnification of the Themis STEM display (21.9 nm at 4.56 Mx)
+function renderVtab(){ $("vtab").textContent=`A: ${state.view==="haadf"?"HAADF":L().model} · ${L().mat[state.mat].name}`; }
+function renderInstr(){
+  if(THEME==="classic") return;
+  const ti=targetIndex(), site=ti!==null?state.sites[ti]:null, at=targetAtom(site), P=state.probe;
+  const mag=(MAG_CAL/(FOV/10)).toFixed(1)+" Mx", D=at?doseAt(Math.hypot(site.x-P.x,site.y-P.y)):null;
+  const OPT=["Size","Pixel size","CL","Coll. Angle"];  // dropped first when the strip runs out of room
+  const cell=(k,v)=>`<div class="c${OPT.includes(k)?" opt":""}"><span>${k}</span><b>${v}</b></div>`;
+  $("vstrip").innerHTML=[["Size",W],["Dwell",fmtT(state.t)],["HT",state.kV+" kV"],["Scan fov",(FOV/10).toFixed(1)+" nm"],["STEM Mag",mag],
+    ["Pixel size",(FOV*100/W).toFixed(2)+" pm"],["CL","91 mm"],["Beam conv.",state.alpha.toFixed(1)+" mrad"],["Coll. Angle","69 – 200 mrad"],["I screen",state.I+" pA"],["Defocus","0 nm"]]
+    .map(a=>cell(...a)).join("");
+  $("status").innerHTML=[["HT:",state.kV+" kV"],["Screen:",(state.I/1000).toFixed(3)+" nA"],["X:",P?(P.x/10).toFixed(3)+" nm":"—"],
+    ["Defoc.:","0 nm"],["Conv.:",state.alpha.toFixed(1)+" mrad"],["Y:",P?(P.y/10).toFixed(3)+" nm":"—"],
+    ["Exposure:",fmtT(state.t)],["Mag:",mag],["Dose:",D!==null?fmtSci(D)+" e⁻/Å²":"—"]].map(a=>cell(...a)).join("");
+  renderVtab();
+}
+// Histogram of the simulated HAADF image, as in the display settings of the real software.
+function drawHist(){
+  if(THEME==="classic") return;
+  if(!haadfBuf) renderHAADF();
+  const d=haadfBuf.data, nb=96, bins=new Float64Array(nb);
+  for(let i=0;i<d.length;i+=12) bins[Math.min(nb-1,(d[i]*nb)>>8)]++;
+  const sm=bins.map((v,k)=>(bins[Math.max(0,k-1)]+2*v+bins[Math.min(nb-1,k+1)])/4); bins.set(sm);
+  let mx=0; for(const v of bins) mx=Math.max(mx,v);
+  document.querySelectorAll("canvas.hist").forEach(c=>{
+    if(!c.getClientRects().length) return;
+    const g=c.getContext("2d"), w=c.width, h=c.height, light=THEME==="tia";
+    g.fillStyle=light?"#ffffff":"#1b1f24"; g.fillRect(0,0,w,h);
+    g.beginPath(); g.moveTo(0,h);
+    for(let k=0;k<nb;k++) g.lineTo((k+0.5)/nb*w, h-1-(bins[k]/mx)*(h-6));
+    g.lineTo(w,h); g.closePath(); g.fillStyle="#1f2bd6"; g.fill();
+    g.strokeStyle=light?"#7a7a7a":"#d9c27a"; g.lineWidth=1; g.beginPath(); g.moveTo(0,h); g.lineTo(w,0); g.stroke();
+  });
+}
+
+// ======================= TUTORIAL =======================
+const TUT_STEPS=["iface","sample","atom","kV","I","t","alpha","fire","result","view","reset","back","restart"];
+const TUT_INLINE={iface:true,sample:true}; // shown as a banner above the sample cards
+const TUT_WAIT={sample:true,atom:true,fire:true}; // steps that advance on an action, not on "Next"
+const tut={on:false,step:0,shown:-1};
+let tutDone=false; try{ tutDone=localStorage.getItem("knockon-tut-done")==="1"; }catch(e){}
+function tutAtomReady(){ const ti=targetIndex(); return ti!==null && !!targetAtom(state.sites[ti]); }
+function tutStart(){
+  tut.on=true; tut.shown=-1;
+  if(!$("lab").hidden) tut.step=TUT_STEPS.indexOf("atom"); else { tut.step=0; if(!$("start").hidden){ showSection("select"); return; } }
+  if(!$("lab").hidden) update(); else tutRender();
+}
+function tutEnd(){ tut.on=false; tutDone=true; try{ localStorage.setItem("knockon-tut-done","1"); }catch(e){} tutRender(); }
+function tutGo(i){ tut.step=Math.max(0,Math.min(TUT_STEPS.length-1,i)); tutRender(); }
+// Highlighted element for each step; Velox has the view/reset/back buttons in its ribbon.
+function tutEl(){
+  const k=TUT_STEPS[tut.step], v=THEME==="velox";
+  const sel={iface:"#ifaceSeg",sample:"#samples",atom:"#screen",kV:"#ctrl_kV",I:"#ctrl_I",t:"#ctrl_t",alpha:"#ctrl_alpha",
+    fire:"#fireBtn",result:"#result",view:v?"#rbHaadf":"#viewSeg",reset:v?"#rbReset":"#resetBtn",back:v?"#rbBack":"#backBtn",restart:"#restartBtn"}[k];
+  const el=document.querySelector(sel);
+  return (v&&k==="view"&&el)?el.closest(".rg"):el;
+}
+function tutRender(){
+  document.querySelectorAll(".tut-hl").forEach(n=>n.classList.remove("tut-hl"));
+  $("select").classList.toggle("pick-iface", tut.on&&TUT_STEPS[tut.step]==="iface"); // step 1: no samples yet, an arrow to the selector
+  tutArrow();
+  const card=$("tut");
+  if(!tut.on){ card.hidden=true; return; }
+  const key=TUT_STEPS[tut.step], el=tutEl();
+  if(!el||el.closest("[hidden]")){ card.hidden=true; return; }
+  if(key!=="sample") el.classList.add("tut-hl");
+  if(TUT_INLINE[key]){ const anc=$("samples"); card.classList.add("inline"); card.classList.remove("sheet"); if(card.nextElementSibling!==anc) anc.parentNode.insertBefore(card,anc); card.style.left=card.style.top=""; }
+  else if(card.parentNode!==document.body){ card.classList.remove("inline"); document.body.appendChild(card); }
+  const T=L(), TT=T.tut, step=TT.steps[key];
+  let kv="";
+  if(key==="kV"){ const ti=targetIndex(), at=ti!==null?targetAtom(state.sites[ti]):null; if(at) kv=TT.kvTarget(at.el,+thresholdKV(at.el)); }
+  $("tutStep").textContent=TT.stepOf(tut.step+1,TUT_STEPS.length);
+  $("tutTitle").textContent=step[0];
+  $("tutText").innerHTML=step[1]({T,kv});
+  const wait=TUT_WAIT[key];
+  $("tutHint").textContent=wait?TT.hint[key]:"";
+  $("tutHint").hidden=!wait;
+  const last=tut.step===TUT_STEPS.length-1;
+  $("tutNext").textContent=last?TT.finish:TT.next;
+  $("tutNext").disabled=!!wait;
+  $("tutBack").textContent=TT.back;
+  $("tutBack").disabled=tut.step===0||key==="atom";
+  $("tutSkip").textContent=TT.skip;
+  card.hidden=false;
+  if(tut.shown!==tut.step){
+    tut.shown=tut.step;
+    const beh=matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth";
+    if(key==="iface") window.scrollTo({top:0,behavior:beh});
+    else if(TUT_INLINE[key]) card.scrollIntoView({block:"start",behavior:beh});
+    else el.scrollIntoView({block:"nearest",behavior:beh});
+    setTimeout(tutPlace,420);
+  }
+  tutPlace();
+}
+// Step 1: an arrow under the Lab/TIA/Velox selector, pointing up at it.
+function tutArrow(){
+  const ar=$("tutArrow"), on=tut.on&&TUT_STEPS[tut.step]==="iface"&&!$("select").hidden;
+  ar.toggleAttribute("hidden",!on); if(!on) return;  // SVG has no .hidden property
+  const r=$("ifaceSeg").getBoundingClientRect();
+  const side=innerWidth<760&&r.right+72<innerWidth;   // phones: beside the selector, so it doesn't cover the language buttons
+  ar.classList.toggle("side",side);
+  if(side){ ar.style.left=Math.round(r.right+14+scrollX)+"px"; ar.style.top=Math.round(r.top+r.height/2-30+scrollY)+"px"; }
+  else { ar.style.left=Math.round(r.left+r.width/2-22+scrollX)+"px"; ar.style.top=Math.round(r.bottom+8+scrollY)+"px"; }
+}
+addEventListener("resize",tutArrow); document.fonts&&document.fonts.ready.then(tutArrow);
+// Put the card next to the highlighted element, on the side with more room; bottom sheet on phones.
+function tutPlace(){
+  const card=$("tut"); if(card.hidden||card.classList.contains("inline")) return;
+  const el=tutEl(); if(!el) return;
+  const vw=innerWidth, vh=innerHeight;
+  if(vw<760){ card.classList.add("sheet"); card.style.left=""; card.style.top=""; return; }
+  card.classList.remove("sheet");
+  const r=el.getBoundingClientRect(), cw=card.offsetWidth, ch=card.offsetHeight, m=16, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  let x,y;
+  const sR=vw-r.right, sL=r.left;
+  if(Math.max(sR,sL)>=cw+2*m){
+    x = sR>=sL ? r.right+m : r.left-m-cw;
+    y = clamp(r.top+r.height/2-ch/2, 8, vh-ch-8);
+  } else if(vh-r.bottom>=ch+2*m){ y=r.bottom+m; x=clamp(r.left+r.width/2-cw/2,8,vw-cw-8); }
+  else if(r.top>=ch+2*m){ y=r.top-m-ch; x=clamp(r.left+r.width/2-cw/2,8,vw-cw-8); }
+  else { x=vw-cw-12; y=vh-ch-12; }
+  card.style.left=Math.round(x)+"px"; card.style.top=Math.round(y)+"px";
+}
+addEventListener("resize",tutPlace); addEventListener("scroll",tutPlace,{passive:true});
+document.addEventListener("scroll",tutPlace,{passive:true,capture:true});
+$("tutNext").addEventListener("click",()=>{ if(tut.step===TUT_STEPS.length-1) tutEnd(); else tutGo(tut.step+1); });
+$("tutBack").addEventListener("click",()=>tutGo(tut.step-1));
+$("tutSkip").addEventListener("click",tutEnd);
+$("tutBtn").addEventListener("click",tutStart);
+
+function afterUpdate(){
+  renderInstr(); drawHist(); $("rbFire").disabled=$("fireBtn").disabled;
+  if(tut.on&&TUT_STEPS[tut.step]==="atom"&&tutAtomReady()) tut.step++;
+  tutRender();
+}
+
+$("startNext").addEventListener("click",()=>{ tut.on=true; tut.step=0; tut.shown=-1; showSection("select"); });
+$("startSkip").addEventListener("click",()=>{ tut.on=false; showSection("select"); });
+makeNoise(); setTheme(THEME); applyLang(); showSection("start");
+window.__ko={state,openLab,update,setTheme,tut,expose};
+})();
+</script>
+
+</body></html>

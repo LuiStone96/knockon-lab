@@ -12,7 +12,7 @@ knockon-lab/
 ├── robots.txt          ← permite que Google indexe
 ├── sitemap.xml         ← le dice a Google qué páginas hay
 ├── netlify.toml        ← configuración de Netlify
-├── LICENSE             ← licencia MIT (cámbiala si prefieres otra)
+├── LICENSE             ← licencia PolyForm Noncommercial 1.0.0 (desde v1.1.0)
 ├── CITATION.cff        ← para el DOI de Zenodo
 ├── README.md           ← portada del repositorio en GitHub
 ├── ITCHIO.md           ← textos listos para la página de itch.io
